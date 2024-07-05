@@ -99,7 +99,7 @@ class Page{
             query(ref(db,`auction/iterations`), orderByChild(`active`),equalTo(true)),
             a=>{
                 console.log(a.val())
-                let n = new Iteration(a.val(),tg,this.balance())
+                let n = new Iteration(a.val(),tg,this.balance(),drawDate)
                 if(this.iterations.indexOf(n)==-1){
                     this.iterations.push(n)
                 }
@@ -132,8 +132,34 @@ function time2(v){
     return `${h?`${h}:`:''}${z(m)}:${z(s)}`
 }
 
+
+function history(log){
+    let c = ce(`div`,false,`containerHelp`,`?`,{
+        onclick:()=>{
+            let m = ce(`div`,false,[`modal`,(tg.colorScheme=='dark'?`reg`:`light`)])
+                m.append(ce(`h2`,false,false,helperTexts[type].title,{
+                    onclick:()=>m.remove()
+                }))
+            let sub = ce(`div`,false, `vScroll`)
+                log.forEach(r=>{
+                    sub.append(ce(`p`,false,`info`,{}))
+                })
+
+                sub.append(ce(`button`,false,`thin`,`скрыть`,{
+                    onclick:()=>m.remove()
+                }))
+                
+            m.append(sub)
+            document.body.append(m)
+        }
+    });
+    
+    return c;
+}
+
+
 class Iteration{
-    constructor (a,tg,balance){
+    constructor (a,tg,balance,drawDate){
         
         this.id =           a.id
         this.name =         ko.observable(a.auctionName),
@@ -141,9 +167,30 @@ class Iteration{
         this.base =         ko.observable(a.base),
         this.stake =        ko.observable(a.stake),
         this.stakeHolder =  ko.observable(a.stakeHolder),
+        this.stakeHolderId =  ko.observable(a.stakeHolderId),
         this.timer =        ko.observable(a.timer._seconds ? a.timer._seconds*1000 : a.timer)
         this.left =         ko.observable(time2(+new Date(a.timer._seconds ? a.timer._seconds*1000 : a.timer) - new Date()))
-        
+        this.showHistory = ()=>{
+            axios.get(`/auction/api/iterationStakes/${a.id}`).then(col=>{
+                let m = ce(`div`,false,[`modal`,(tg.colorScheme=='dark'?`reg`:`light`)])
+                m.append(ce(`h2`,false,false,`История`,{
+                    onclick:()=>m.remove()
+                }))
+                let sub = ce(`div`,false, `vScroll`)
+                    col.data.forEach(r=>{
+                        sub.append(ce(`p`,false,false,`${drawDate(r.createdAt._seconds*1000,false,{time:true})}`))
+                        sub.append(ce(`p`,false,`info`,`Юзер ${r.user} делает ставку ${a.base}.`))
+                        sub.append(ce(`p`,false,`info`,`Юзер ${r.user} лидирует на аукционе.`))
+                    })
+
+                    sub.append(ce(`button`,false,`thin`,`скрыть`,{
+                        onclick:()=>m.remove()
+                    }))
+                    
+                m.append(sub)
+                document.body.append(m)
+            })
+        }
         this.ava =          ko.observable(null);
 
         this.pushStake = (v) =>{
@@ -182,6 +229,7 @@ class Iteration{
                 this.base(a.base)
                 this.stake(a.stake)
                 this.stakeHolder(a.stakeHolder)
+                this.stakeHolderId(a.stakeHolderId||null)
                 this.setAva(a.stakeHolderAva || null)
                 this.timer(a.timer)
             }

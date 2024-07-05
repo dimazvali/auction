@@ -1,7 +1,8 @@
 const ngrok2 = process.env.ngrok2;
-const ngrok = process.env.ngrok;
+const ngrok = process.env.ngrok
 const host = `auction`
 const token = process.env.auctionToken;
+const defaultIterationLength = 30;
 
 var express =   require('express');
 var router =    express.Router();
@@ -88,22 +89,39 @@ const { database } = require('firebase-admin');
 
 
 
+// let gcp = initializeApp({
+//     credential: cert({
+//         "type": "service_account",
+//         "project_id": "starsauctionbot",
+//         "private_key_id": "d4d9ca3d5d7d97b4e02670f6c5d5adb2d7eecab6",
+//         "private_key": process.env.auctionGCPKey.replace(/\\n/g, '\n'),
+//         "client_email": "firebase-adminsdk-3qg1r@starsauctionbot.iam.gserviceaccount.com",
+//         "client_id": "105257691854835814162",
+//         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+//         "token_uri": "https://oauth2.googleapis.com/token",
+//         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+//         "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-3qg1r%40starsauctionbot.iam.gserviceaccount.com",
+//         "universe_domain": "googleapis.com"
+//       }
+//       ),
+//     databaseURL: "https://starsauctionbot-default-rtdb.europe-west1.firebasedatabase.app"
+// }, host);
+
+
 let gcp = initializeApp({
     credential: cert({
-        "type": "service_account",
-        "project_id": "starsauctionbot",
-        "private_key_id": "d4d9ca3d5d7d97b4e02670f6c5d5adb2d7eecab6",
-        "private_key": process.env.auctionGCPKey.replace(/\\n/g, '\n'),
-        "client_email": "firebase-adminsdk-3qg1r@starsauctionbot.iam.gserviceaccount.com",
-        "client_id": "105257691854835814162",
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token",
+        "type":             "service_account",
+        "project_id":       "dimazvalimisc",
+        "private_key_id":   "5eb5025afc0fe53b63f518ba071f89e7b7ce03af",
+        "private_key":      process.env.sssGCPKey.replace(/\\n/g, '\n'),
+        "client_email":     "firebase-adminsdk-4iwd4@dimazvalimisc.iam.gserviceaccount.com",
+        "client_id":        "110523994931477712119",
+        "auth_uri":         "https://accounts.google.com/o/oauth2/auth",
+        "token_uri":        "https://oauth2.googleapis.com/token",
         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-3qg1r%40starsauctionbot.iam.gserviceaccount.com",
-        "universe_domain": "googleapis.com"
-      }
-      ),
-    databaseURL: "https://starsauctionbot-default-rtdb.europe-west1.firebasedatabase.app"
+        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-4iwd4%40dimazvalimisc.iam.gserviceaccount.com"
+      }),
+    databaseURL: "https://dimazvalimisc-default-rtdb.europe-west1.firebasedatabase.app"
 }, host);
 
 let fb =    getFirestore(gcp);
@@ -200,6 +218,10 @@ function accessError(res,access){
 }
 
 const locals = {
+    about: {
+        ru: `FAQ`,
+        en: `FAQ`
+    },
     bet: {
         ru: `Сделать ставку`,
         en: `Bet`
@@ -313,7 +335,7 @@ function stopIteration(iteration,user){
     getDoc(auctions,iteration.auction).then(a=>{
         if(a.active) auctionsIterationsAdd({body:{
             auction: a.id,
-            till: +new Date()+60*60*1000
+            till: +new Date()+defaultIterationLength*60*1000
         }},false,false)
     })
     
@@ -350,6 +372,11 @@ function stopIteration(iteration,user){
     
 }
 
+function mask(id){
+    id = id.toString();
+    return id.replace(/...../,'*****') 
+}
+
 router.all(`/api/:method/:id`,(req,res)=>{
 
     let token = req.signedCookies.userToken;
@@ -367,7 +394,16 @@ router.all(`/api/:method/:id`,(req,res)=>{
             if (!user) return res.sendStatus(403)
                 
                 switch(req.params.method){
-
+                    case `iterationStakes`:{
+                        return ifBefore(auctionsBets,{auctionsIteration:req.params.id}).then(col=>{
+                            res.json(col.map(s=>{
+                                return {
+                                    createdAt: s.createdAt,
+                                    user: mask(s.user)
+                                }
+                            }))
+                        })
+                    }
                     case `stake`:{
                         return getDoc(auctionsIterations,req.params.id).then(i=>{
                             if(!i || !i.active) return res.status(400).send(userLang(locals.errors.noSuchAuction,user.language_code))
@@ -405,16 +441,19 @@ router.all(`/api/:method/:id`,(req,res)=>{
 
                                 let timerCorrection = null;
 
-                                let left = (+i.timer - +new Date())
+                                let left = (+new Date(i.timer._seconds*1000) - +new Date())
 
-                                devlog(left/1000)
+                                devlog((left/1000)/60)
 
-                                if(left < 5*60*1000) {
+                                if(left < 3*60*1000) {
+                                    devlog(`остается меньше 3 минут`)
+                                    timerCorrection = 3*60*1000-left
+                                } else if(left < 5*60*1000) {
                                     devlog(`остается меньше 5 минут`)
-                                    timerCorrection = 5*60*1000
+                                    timerCorrection = 5*60*1000-left
                                 } else if (left < 10*60*1000){
                                     devlog(`остается меньше 10 минут`)
-                                    timerCorrection = 10*60*1000
+                                    timerCorrection = 10*60*1000-left
                                 }
 
                                 
@@ -451,6 +490,7 @@ router.all(`/api/:method/:id`,(req,res)=>{
                                 rtb.ref(`${host}/iterations/${i.id}`).update({
                                     stake:          database.ServerValue.increment(+i.base),
                                     stakeHolder:    user.hash,
+                                    stakeHolderId:  mask(user.id),
                                     stakeHolderAva: user.photo_url || null
                                 })
 

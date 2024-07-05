@@ -86,7 +86,7 @@ function authWebApp(req,res,token,adminTokens,udb){
 
         getUser(req.body.user.id,udb).then(u=>{
         
-            if(u.blocked) return res.sendStatus(403)
+            if(u && u.blocked) return res.sendStatus(403)
 
             if(!u) registerUser(req.body.user)
                 
@@ -610,7 +610,7 @@ function alertMe(m, ep) {
     if (!m.chat_id) {
         m.chat_id = dimazvali
     }
-    return axios.post('https://api.telegram.org/bot' + process.env.papersToken + '/' + (ep ? ep : 'sendMessage'),
+    return axios.post('https://api.telegram.org/bot' + process.env.auctionToken + '/' + (ep ? ep : 'sendMessage'),
         m, {
             headers: {
                 'Content-Type': 'application/json'

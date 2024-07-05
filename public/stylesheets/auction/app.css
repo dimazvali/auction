@@ -500,9 +500,9 @@ img.coverS {
     width: 100vw;
     padding: 20px;
     box-sizing: border-box;
-    
     animation: appear .3s forwards;
     filter: opacity(0);
+    padding-bottom: 60px;
 }
 
 .vScroll {
