@@ -35,7 +35,7 @@ bodyParser.json({limit: '50mb'})
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-app.use('/auction',         require('./routes/auction'));
+app.use('/auction',         require('./routes/auctionBot'));
 
 
 // catch 404 and forward to error handler
