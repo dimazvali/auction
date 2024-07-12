@@ -1,5 +1,5 @@
 const ngrok2 = process.env.ngrok2;
-const ngrok = process.env.ngrok
+const ngrok = process.env.ngrok;
 const host = `auction`
 const token = process.env.auctionToken;
 const defaultIterationLength = 30;
@@ -374,7 +374,8 @@ function stopIteration(iteration,user){
 
 function mask(id){
     id = id.toString();
-    return id.replace(/...../,'*****') 
+    // return id.replace(/...../,'*****') 
+    return `*****${id.slice(id.length-2,id.length)}`
 }
 
 router.all(`/api/:method/:id`,(req,res)=>{
@@ -399,7 +400,8 @@ router.all(`/api/:method/:id`,(req,res)=>{
                             res.json(col.map(s=>{
                                 return {
                                     createdAt: s.createdAt,
-                                    user: mask(s.user)
+                                    user: mask(s.user),
+                                    you: s.user == +user.id ? true : false
                                 }
                             }))
                         })
@@ -445,7 +447,10 @@ router.all(`/api/:method/:id`,(req,res)=>{
 
                                 devlog((left/1000)/60)
 
-                                if(left < 3*60*1000) {
+                                if(left < 1*60*1000) {
+                                    devlog(`остается меньше 1 минуты`)
+                                    timerCorrection = 1*60*1000-left
+                                } else if(left < 3*60*1000) {
                                     devlog(`остается меньше 3 минут`)
                                     timerCorrection = 3*60*1000-left
                                 } else if(left < 5*60*1000) {
@@ -454,6 +459,9 @@ router.all(`/api/:method/:id`,(req,res)=>{
                                 } else if (left < 10*60*1000){
                                     devlog(`остается меньше 10 минут`)
                                     timerCorrection = 10*60*1000-left
+                                } else if (left < 15*60*1000){
+                                    devlog(`остается меньше 10 минут`)
+                                    timerCorrection = 15*60*1000-left
                                 }
 
                                 

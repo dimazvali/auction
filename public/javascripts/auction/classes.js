@@ -28,6 +28,32 @@ import {
 let app = initializeApp(firebaseConfig);
 let db = getDatabase(app)
 
+
+function helper(type){
+    let c = ce(`div`,false,`containerHelp`,`?`,{
+        onclick:()=>{
+            let m = ce(`div`,false,[`modal`,(tg.colorScheme=='dark'?`reg`:`light`)])
+                m.append(ce(`h2`,false,false,helperTexts[type].title,{
+                    onclick:()=>m.remove()
+                }))
+            let sub = ce(`div`,false, `vScroll`)
+                helperTexts[type].text.forEach(p=>{
+                    sub.append(ce(`p`,false,`info`,p))
+                })
+
+                sub.append(ce(`button`,false,`thin`,`скрыть`,{
+                    onclick:()=>m.remove()
+                }))
+                
+            m.append(sub)
+            document.body.append(m)
+        }
+    });
+    
+    return c;
+}
+
+
 class Page{
     constructor(d,tg,handleError,host,userLoad,drawDate){
         this.showAlert = (txt) => tg.showAlert(txt);
@@ -41,7 +67,7 @@ class Page{
                         this.transactions.push({
                             comment:    t.comment || 'обновление',
                             amount:     t.amount,
-                            date:       drawDate(t.createdAt._seconds*1000,false,{time:true})
+                            date:       drawDate(t.createdAt._seconds*1000,false,{time:true,seconds:true})
                         })    
                     });
                     
@@ -56,7 +82,7 @@ class Page{
         this.username =     ko.observable(d.profile.username)
         this.avatar =       ko.observable(d.profile.photo_url)
         this.hash =         ko.observable(d.profile.hash)
-        
+        // cons
         this.requestPayment = (amount) =>{
             axios.post(`/${host}/api/refill`,{
                 amount: +amount
@@ -179,8 +205,8 @@ class Iteration{
                 let sub = ce(`div`,false, `vScroll`)
                     col.data.forEach(r=>{
                         sub.append(ce(`p`,false,false,`${drawDate(r.createdAt._seconds*1000,false,{time:true})}`))
-                        sub.append(ce(`p`,false,`info`,`Юзер ${r.user} делает ставку ${a.base}.`))
-                        sub.append(ce(`p`,false,`info`,`Юзер ${r.user} лидирует на аукционе.`))
+                        sub.append(ce(`p`,false,`info`, r.you? `Вы делаете ставку ${a.base}.` : `Юзер ${r.user} делает ставку ${a.base}.`))
+                        sub.append(ce(`p`,false,`info`,r.you? `Вы лидируете на аукционе` : `Юзер ${r.user} лидирует на аукционе.`))
                     })
 
                     sub.append(ce(`button`,false,`thin`,`скрыть`,{

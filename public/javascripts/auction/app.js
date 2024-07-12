@@ -2,33 +2,8 @@
 const tg = window.Telegram.WebApp;
 const host = `auction`
 let mcb, mbbc, curLecture, curTicket, curAlert = null;
-const helperTexts = {}
 
 
-
-function helper(type){
-    let c = ce(`div`,false,`containerHelp`,`?`,{
-        onclick:()=>{
-            let m = ce(`div`,false,[`modal`,(tg.colorScheme=='dark'?`reg`:`light`)])
-                m.append(ce(`h2`,false,false,helperTexts[type].title,{
-                    onclick:()=>m.remove()
-                }))
-            let sub = ce(`div`,false, `vScroll`)
-                helperTexts[type].text.forEach(p=>{
-                    sub.append(ce(`p`,false,`info`,p))
-                })
-
-                sub.append(ce(`button`,false,`thin`,`скрыть`,{
-                    onclick:()=>m.remove()
-                }))
-                
-            m.append(sub)
-            document.body.append(m)
-        }
-    });
-    
-    return c;
-}
 
 function showLoad(){
     tg.MainButton.setParams({
@@ -108,6 +83,9 @@ function toast(txt){
         tg.MainButton.hide()
     },1500)
 }
+
+
+
 
 
 function shimmer(light){

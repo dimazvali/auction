@@ -503,8 +503,12 @@ img.coverS {
     animation: appear .3s forwards;
     filter: opacity(0);
     padding-bottom: 60px;
+    
 }
 
+.modal.reg{
+    background: var(--tg-theme-bg-color);
+}
 .vScroll {
     height: 90%;
     overflow-y: scroll;
