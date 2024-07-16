@@ -29,7 +29,6 @@ html
     
   body#b
     script!=`let authNeeded=${authNeeded}`
-        div
     //- .popup(data-bind="hidden:active()!='about',attr:{shown:active()!='about',class:active()!='about'?`hidden`:`reg`}")
     //-     div
     //-         p But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure
@@ -39,9 +38,10 @@ html
             .flexLeft
                 div.avaContainer
                     img.ava(data-bind="attr:{src:avatar}")
-                    span.bal(data-bind="text:balance")
+                    span.bal(data-bind="html:`⭐ ${balance()} 💎 ${tonBalance()}`")
                 h3(data-bind="text:username")
-            button(data-bind="event:{click:()=>$root.requestPayment(10)}")!=translations.refill[lang]
+            button(data-bind="event:{click:()=>$root.requestPayment(10)}")!='⭐'+translations.refill[lang]
+            button(data-bind="event:{click:()=>$root.requestPaymentTon(10)}") 💎 Пополнить Тон
             //- button(data-bind="event:{click:()=>$root.requestPayment(10)}") Пополнить счет
             div.mTop(data-bind="foreach:transactions")
                 div.transaction(data-bind="event:{click:()=>$root.showAlert(`${date}\n\n${comment}: ⭐${amount}`)}")
@@ -50,7 +50,7 @@ html
     .popup.reg(data-bind="hidden:active()!='lobby',attr:{shown:active()!='lobby',class:active()!='lobby'?`hidden`:`reg`}")
         div
             div(data-bind="foreach:iterations")
-                .container.auction(data-bind="shown:active, attr:{'data-active':active}")
+                .container.auction(data-bind="shown:active, attr:{'data-active':active,'data-ton':ton}")
                     h3.auctionName(data-bind="text:name")
                     div.pool(data-bind="text: stake, style:{'background-image':`url(${ava()})`}")
                     p.info(data-bind="text: 'выигрывает: '+(stakeHolder() == $root.hash()? 'ваша ставка' : (stakeHolderId()||'энтропия')),event:{click:()=>showHistory()}")
@@ -64,7 +64,7 @@ html
     #footer.flex
         #lobby(data-bind="event:{click:()=>sactive('lobby')}, attr:{'data-chosen':active()=='lobby'?true:false}")!=translations.auctions[lang]
         //- #lobby(data-bind="event:{click:()=>sactive('lobby')}, attr:{'data-chosen':active()=='lobby'?true:false}") Аукционы
-        #profile(data-bind="event:{click:()=>sactive('profile')}, html:`⭐ ${balance()}`, attr:{'data-chosen':active()=='profile'?true:false}")
+        #profile(data-bind="event:{click:()=>sactive('profile')}, html:`⭐ ${balance()} 💎 ${tonBalance()}`, attr:{'data-chosen':active()=='profile'?true:false}")
         //- #about(data-bind="event:{click:()=>sactive('about')}, attr:{'data-chosen':active()=='about'?true:false}")!=translations.about[lang]
         
   script(type="module" src='/javascripts/auction/app.js')

@@ -80,7 +80,7 @@ div#popup {
     filter: opacity(.3);
     background-size: 50%;
     background-position: 50%;
-    z-index: 10;
+    z-index: 100000;
     transition: 1s;
 }
 
@@ -703,4 +703,14 @@ span.bal {
 
 .container.auction[data-active] {
     display: block;
+}
+
+[data-ton="true"] {
+    background-image: url(/images/auction/ton_symbol.png);
+    background-size: 20%;
+    background-blend-mode: multiply;
+}
+
+button+button {
+    margin-top: 5px;
 }

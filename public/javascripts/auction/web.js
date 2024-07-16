@@ -45,7 +45,7 @@ function showIterations(){
 }
 
 function showAuctionLine(a){
-    let c = listContainer(a,true,{iterations:`Итераций`})
+    let c = listContainer(a,true,{iterations:`Итераций`,ton: `за TON`})
         c.append(ce(`h2`,false,false,a.name,{
             onclick:()=>showAuction(a.id)
         }))
@@ -74,9 +74,10 @@ function showUserLine(u){
 
 function addAuction(){
     addScreen(`auctions`,`Новый аукцион`,{
-        name:       {placeholder:`название`},
-        base:       {placeholder: `ставка`, type: `number`},
-        start:      {placeholder: `стартовый пул`, type: `number`},
+        name:       {placeholder:   `название`},
+        ton:        {placeholder:   `TON`,              type: `boolean`, bool: true},
+        base:       {placeholder:   `ставка`,           type: `number`},
+        start:      {placeholder:   `стартовый пул`,    type: `number`},
     })
 }
 
@@ -85,6 +86,14 @@ function addIteration(auctionId,name){
         auction:    {placeholder:`id аукциона`, type:`hidden`, value: auctionId},
         till:       {type: `datetime-local`,placeholder: `дата окончания`}
     })
+}
+
+function addTransactionTon(userId,callback){
+    addScreen(`transactions`,`Зачисление / вычет TON пользователю ${userId}`,{
+        user:       {placeholder:`id пользователя`, type:`hidden`, value: userId},
+        amount:     {placeholder: `сумма`, type: `number`},
+        ton:        {type: `hidden`,value: true}
+    },callback)
 }
 
 function addTransaction(userId,callback){
@@ -113,6 +122,8 @@ function showAuction(id){
     
     load(`auctions`,id).then(a=>{
         
+        if(a.ton) p.append(ce(`h2`,false,false,`ЗА TON`))
+
         p.append(ce('h1', false, false, `${a.name}`,{
             onclick: function () {
                 edit(`auctions`, a.id, `name`, `text`, a.name, this)
@@ -287,6 +298,10 @@ function showUser(id){
 
         p.append(ce(`p`,false,false,`Депозит: ${u.score}`,{
             onclick:()=>addTransaction(u.id,()=>showUser(id))
+        }))
+
+        p.append(ce(`p`,false,false,`Ton: ${u.tonScore}`,{
+            onclick:()=>addTransactionTon(u.id,()=>showUser(id))
         }))
 
 

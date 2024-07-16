@@ -9,6 +9,8 @@ const firebaseConfig = {
     appId: "1:1033227630983:web:804a29311cb28a93e93b22"
 };
 
+let wallet ="UQAbMidsunh9esQXj1bd7zXNS-lamkN77cdqaF-GEdJ5W9yj";
+
 import {
     initializeApp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -74,15 +76,86 @@ class Page{
                 })
             }
         }
-        this.transactions =  ko.observableArray([])
-        this.auctions =     ko.observableArray(d.auctions.map(a=>new Auction(a)))
-        this.balance =      ko.observable(d.profile.score)
+        this.transactions =     ko.observableArray([])
+        this.auctions =         ko.observableArray(d.auctions.map(a=>new Auction(a)))
+        
+        this.balance =          ko.observable(d.profile.score)
+        this.tonBalance =       ko.observable(d.profile.tonScore || 0)
+        
         // this.iterations =   ko.observableArray(d.iterations.map(i=>new Iteration(i,tg,this.balance())))
         this.iterations =   ko.observableArray([])
         this.username =     ko.observable(d.profile.username)
         this.avatar =       ko.observable(d.profile.photo_url)
         this.hash =         ko.observable(d.profile.hash)
-        // cons
+        
+        this.requestPaymentTon = (amount) =>{
+            
+            tg.BackButton.show();
+
+            tg.onEvent('backButtonClicked', clearPopUp)
+
+            tg.HapticFeedback.notificationOccurred('success')
+
+    
+
+            // mcb = clearPopUp
+            
+            let popup = ce('div', false, 'popup')
+            
+
+            document.body.append(popup)
+            let p = ce('div')
+            
+            popup.append(p)
+
+            p.append(ce(`h1`,false,false,`Пополнение TON`))
+            // p.append(ce(`p`,false,`info`,`тут, наверное, какой-то текст про правила и всю хурму`))
+            
+            p.append(ce(`p`,false,`info`, `Вы можете перевести любое количество TON на кошелек <pre>${wallet}</pre>ОБЯЗАТЕЛЬНО УКАЖИТЕ ПРИМЕЧАНИЕ <pre>${this.hash()}</pre>`))
+            
+            p.append(ce(`button`,false,`thin`,`Скопировать адрес кошелька`,{
+                onclick:function(){
+                    navigator.clipboard.writeText(`${wallet}`).then(s=>{
+                        try {
+                            tg.showAlert(`Ссылка скопирована`)    
+                        } catch (error) {
+                            alert(`ссылка скопирована`)
+                        }
+                        
+                    }).catch(err=>{
+                        console.warn(err)
+                    })
+                } 
+            }))
+            
+            let amountInput = ce(`input`,false,false,false,{
+                placeholder: `сколько вы хотите внести`,
+                value: amount,
+                type: `number`,
+                min: 0,
+                step: 1
+            })
+
+            p.append(amountInput)
+            
+            let wallets = [{
+                name: `Ton Wallet`,
+                link:(v)=>`ton://transfer/${wallet}?amount=${+v*1000000000}&text=${this.hash()}`
+            },{
+                name: `Tonkeeper`,
+                link:(v)=>`https://app.tonkeeper.com/transfer/${wallet}?amount=${+v*1000000000}&text=${this.hash()}`
+            },{
+                name: `Tonhub`,
+                link:(v)=>`https://tonhub.com/transfer/${wallet}?amount=${+v*1000000000}&text=${this.hash()}`
+            }]
+            
+            wallets.forEach(w=>{
+                p.append(ce(`button`,false,false,w.name,{
+                    onclick:()=>tg.openLink(w.link(+amountInput.value))
+                }))
+            })
+        }
+
         this.requestPayment = (amount) =>{
             axios.post(`/${host}/api/refill`,{
                 amount: +amount
@@ -101,13 +174,12 @@ class Page{
                     tg.showAlert(s.data)
                 })
                 .catch(err=>{
- 
                     if(err.response.data.invoice){
                         console.log(`УДАЛИТЬ инвойс`)
                         tg.showAlert(err.response.data.comment)
                         tg.openInvoice(err.response.data.invoice)
                     } else {
-                        tg.showAlert(err.message)
+                        tg.showAlert(err.response.data ? err.response.data.comment : err.message)
                     }
                 })
                 .finally(i.active(true))
@@ -117,7 +189,10 @@ class Page{
             console.log(`обновился юзер`)
             a = a.val();
             if(a){
+                console.log(a);
+
                 this.balance(a.score)
+                this.tonBalance(a.tonScore || 0)
             }
         })
 
@@ -186,7 +261,7 @@ function history(log){
 
 class Iteration{
     constructor (a,tg,balance,drawDate){
-        
+        this.ton =          ko.observable(a.ton || false);
         this.id =           a.id
         this.name =         ko.observable(a.auctionName),
         this.active =       ko.observable(a.active),

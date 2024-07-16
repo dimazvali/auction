@@ -38,6 +38,7 @@
     "swagger-jsdoc": "^6.2.1",
     "swagger-ui": "^4.10.3",
     "swagger-ui-express": "^4.3.0",
+    "ton": "^13.9.0",
     "vdata-parser": "^0.1.5",
     "vhost": "^3.0.2"
   }
