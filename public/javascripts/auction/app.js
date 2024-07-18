@@ -5,6 +5,7 @@ let mcb, mbbc, curLecture, curTicket, curAlert = null;
 
 
 
+
 function showLoad(){
     tg.MainButton.setParams({
         text:`загружаем`,
@@ -127,6 +128,8 @@ function userLoad(collection, id, extra) {
         // })
 }
 
+let user;
+
 Promise
     .resolve(confirmed)
     .then(user=>{
@@ -150,6 +153,9 @@ Promise
         data.push(userLoad(`profile`))
         
         Promise.all(data).then(data=>{
+            
+            user = data[2];
+
             pageData = new Page({
                 auctions:   data[0],
                 iterations: data[1],

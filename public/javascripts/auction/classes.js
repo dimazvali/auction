@@ -10,6 +10,7 @@ const firebaseConfig = {
 };
 
 let wallet ="UQAbMidsunh9esQXj1bd7zXNS-lamkN77cdqaF-GEdJ5W9yj";
+let wallet2="0:1b32276cba787d7ac4178f56ddef35cd4be95a9a437bedc76a685f8611d2795b"
 
 import {
     initializeApp
@@ -56,6 +57,22 @@ function helper(type){
 }
 
 
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: 'https://e688-2a0b-6204-2fef-ea00-b9ef-2e62-626c-81c7.ngrok-free.app/tonconnect-manifest.json',
+    buttonRootId: 'ton-connect'
+});
+
+tonConnectUI.uiOptions = {
+    twaReturnUrl: 'https://e688-2a0b-6204-2fef-ea00-b9ef-2e62-626c-81c7.ngrok-free.app/auction/app'
+};
+
+
+window.addEventListener('ton-connect-ui-connection-completed', (event) => {
+    console.log('connected', event.detail);
+});
+
+
+
 class Page{
     constructor(d,tg,handleError,host,userLoad,drawDate){
         this.showAlert = (txt) => tg.showAlert(txt);
@@ -76,6 +93,8 @@ class Page{
                 })
             }
         }
+
+
         this.transactions =     ko.observableArray([])
         this.auctions =         ko.observableArray(d.auctions.map(a=>new Auction(a)))
         
@@ -206,6 +225,84 @@ class Page{
                 }
             }
         )
+
+        console.log(tonConnectUI)
+
+        if(tonConnectUI.wallet){
+            document.querySelector(`#sendMe`).append(ce(`button`,false,false,`1 ton`,{
+                onclick:()=>{
+                    let transaction = {
+                        validUntil: Math.floor(Date.now() / 1000) + 60, 
+                        messages: [
+                            {
+                                payload: d.profile.tonPayload,
+                                address: wallet, // destination address
+                                // address: '0:412410771DA82CBA306A55FA9E0D43C9D245E38133CB58F1457DFB8D5CD8892F',
+                                amount: "1000000000" //Toncoin in nanotons
+                            }
+                        ]
+                    }
+        
+                    tonConnectUI.sendTransaction(transaction)
+                }
+            }))
+        }
+        tonConnectUI.onModalStateChange(s=>{
+            if(s.closeReason == "wallet-selected") {
+                console.log(d.profile.tonPayload)
+                document.querySelector(`#sendMe`).append(ce(`button`,false,false,`1 ton`,{
+                    onclick:()=>{
+                        let transaction = {
+                            validUntil: Math.floor(Date.now() / 1000) + 60, 
+                            messages: [
+                                {
+                                    payload: d.profile.tonPayload,
+                                    address: wallet, // destination address
+                                    // address: '0:412410771DA82CBA306A55FA9E0D43C9D245E38133CB58F1457DFB8D5CD8892F',
+                                    amount: "1000000000" //Toncoin in nanotons
+                                }
+                            ]
+                        }
+            
+                        tonConnectUI.sendTransaction(transaction)
+                    }
+                }))
+            }
+        })
+    
+        tonConnectUI.onStatusChange(c=>{
+            console.log(c)
+            if(c){
+                console.log(d.profile.tonPayload)
+                document.querySelector(`#sendMe`).append(ce(`button`,false,false,`1 ton`,{
+                    onclick:()=>{
+                        let transaction = {
+                            validUntil: Math.floor(Date.now() / 1000) + 60, 
+                            messages: [
+                                {
+                                    payload: d.profile.tonPayload,
+                                    address: wallet, // destination address
+                                    // address: '0:412410771DA82CBA306A55FA9E0D43C9D245E38133CB58F1457DFB8D5CD8892F',
+                                    amount: "1000000000" //Toncoin in nanotons
+                                }
+                            ]
+                        }
+            
+                        tonConnectUI.sendTransaction(transaction)
+                    }
+                }))
+            }
+        })
+
+        async function connectToWallet() {
+            const connectedWallet = await tonConnectUI.connectWallet();
+            // Do something with connectedWallet if needed
+            console.log(connectedWallet);
+        }
+
+        // connectToWallet().catch(error => {
+        //     console.error("Error connecting to wallet:", error);
+        // });
 
         
     }
@@ -361,5 +458,6 @@ class Auction{
 }
 
 export {
-    Page
+    Page,
+    // tonConnectUI
 }

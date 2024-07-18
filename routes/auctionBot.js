@@ -4,6 +4,20 @@ const host = `auction`
 const token = process.env.auctionToken;
 const defaultIterationLength = 30;
 
+var beginCell = require('ton').beginCell;
+
+// import { beginCell } from '@ton/ton'
+
+
+function tonPayload(v){
+    return beginCell()
+    .storeUint(0, 32) // write 32 zero bits to indicate that a text comment will follow
+    .storeStringTail(v) // write our text comment
+    .endCell()
+    .toBoc()
+    .toString("base64");
+}
+
 var express =   require('express');
 var router =    express.Router();
 var axios =     require('axios');
@@ -153,7 +167,7 @@ function checkIncoming(){
     axios.get(`https://toncenter.com/api/v2/getTransactions?address=${process.env.OWNER_WALLET}&limit=100&api_key=${process.env.TONCENTER_TOKEN_PROD}`)
         .then(data=>{
             data.data.result.filter(p=>p.in_msg && p.in_msg.body_hash && p.in_msg.message && !processedPayments[p.transaction_id.hash]).forEach(p=>{
-                getDoc(tonPayments,p.transaction_id.hash).then(payment=>{
+                getDoc(tonPayments,p.transaction_id.hash.replace(/\//g,'')).then(payment=>{
                     if(!payment){
                         ifBefore(udb,{
                             hash: p.in_msg.message
@@ -174,7 +188,7 @@ function checkIncoming(){
                             })
                         })
 
-                        tonPayments.doc(p.transaction_id.hash).set({parsed:true})
+                        tonPayments.doc(p.transaction_id.hash.replace(/\//g,'')).set({parsed:true})
                     } else {
                         processedPayments[p.transaction_id.hash] = true;
                     }
@@ -219,16 +233,16 @@ if(!process.env.develop) ifBefore(auctionsIterations).then(col=>{
     
 })
 
-sendMessage2({
-    chat_id: dimazvali,
-    text: `random tr`,
-    reply_markup:{
-        inline_keyboard:[[{
-            text: `1 nanoton2`,
-            url: `ton://transfer/${process.env.OWNER_WALLET}/?text=randomText&amount=1`
-        }]]
-    }
-},false, token)
+// sendMessage2({
+//     chat_id: dimazvali,
+//     text: `random tr`,
+//     reply_markup:{
+//         inline_keyboard:[[{
+//             text: `1 nanoton2`,
+//             url: `ton://transfer/${process.env.OWNER_WALLET}/?text=randomText&amount=1`
+//         }]]
+//     }
+// },false, token)
 
 
 const datatypes = {
@@ -1245,6 +1259,7 @@ router.all(`/api/:method`, (req, res) => {
                         return ifBefore(transactions,{user: +user.id}).then(col=>res.json(col))
                     }
                     case `profile`:{
+                        user.tonPayload = tonPayload(user.hash)
                         return res.json(user)
                     }
                     case `auctions`:{
