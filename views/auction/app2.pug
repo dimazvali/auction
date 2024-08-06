@@ -33,18 +33,32 @@ html
     script!=`${start?`let start="${start}"`:'let start=null'}`
   body#b
     script!=`let authNeeded=${authNeeded}`
-    .popup.hidden
+    div(data-bind="foreach:faqs")
+       .popup.hidden(data-bind="attr:{class:closed()?'hidden':'popup reg'}")
+            div
+                .section
+                    img.ico.big(data-bind="attr:{src:icon}")
+                    h3(data-bind="text:name")
+                    div.small(data-bind="text:description")
+                    button.thin(data-bind="event:{click:()=>toggle()}") Закрыть
+    .popup.hidden(data-bind="hidden:active()!='faq',attr:{class:active()!='faq'?'hidden':'reg'}")
+        div
+            include header
+            .section
+                h3 FAQ
+                .grid2(data-bind="foreach:faqs")
+                    .box2.big(data-bind="event:{click:()=>toggle()}")
+                        img.ico(data-bind="attr:{src:icon}")
+                        p.timing(data-bind="text:timing")
+                        p.score(data-bind="text:name")
     .popup.hidden(data-bind="hidden:active()!='refs',attr:{shown:active()!='profile',class:active()!='refs'?`hidden`:`reg`}")
         div
-            .flexSpread.h64
-                div.h36.box2
-                    span.ton.score(data-bind="html:`${tonBalance().toFixed(2)}`, event:{click:()=>showTransactions()}")
-                div.flex
-                    div.h36.box2.radiant
-                        img(onclick="showFaq(`faq`)" src="/images/auction/faq.svg", alt="")
-                    img.ava2(data-bind="attr:{src:avatar}")
+            include header
             .section
-                h3 Реферальная программа
+                h3 Реферальная ссылка
+                .box2.line
+                    span.ws(data-bind="text:`${botLink}?ref=${userId()}`, event:{click:()=>copyRef()}") 
+                    .copyButton(data-bind="event:{click:()=>copyRef()}")
                 .grid2
                     .box2.big
                         p.t Рефералов
@@ -83,13 +97,7 @@ html
     .popup.hidden(data-bind="hidden:active()!='profile',attr:{shown:active()!='profile',class:active()!='profile'?`hidden`:`reg`}")
         div
             //- button.thin(onclick="showFaq(`faq`)") help
-            .flexSpread.h64
-                div.h36.box2
-                    span.ton.score(data-bind="html:`${tonBalance().toFixed(2)}`, event:{click:()=>showTransactions()}")
-                div.flex
-                    div.h36.box2.radiant
-                        img(onclick="showFaq(`faq`)" src="/images/auction/faq.svg", alt="")
-                    img.ava2(data-bind="attr:{src:avatar}")
+            include header
             .modal(data-bind="attr:{class:transactionsOpen()?'modal':'hidden'}")
                 h2(data-bind="event:{click:()=>showTransactions()}") История
                 .vScroll
@@ -136,13 +144,7 @@ html
             //-         span.info.sum(data-bind="text:amount")
     .popup.reg(data-bind="hidden:active()!='lobby',attr:{shown:active()!='lobby',class:active()!='lobby'?`hidden`:`reg`}")
         div
-            .flexSpread.h64
-                div.h36.box2
-                    span.ton.score(data-bind="html:`${tonBalance().toFixed(2)}`, event:{click:()=>showTransactions()}")
-                div.flex
-                    div.h36.box2.radiant
-                        img(onclick="showFaq(`faq`)" src="/images/auction/faq.svg", alt="")
-                    img.ava2(data-bind="attr:{src:avatar}")
+            include header
             div(data-bind="foreach:iterations")
                 .container.auction(data-bind="shown:active, attr:{'data-active':active,'data-ton':ton}")
                     .flex.s

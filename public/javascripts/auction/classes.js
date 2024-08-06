@@ -73,11 +73,12 @@ window.addEventListener('ton-connect-ui-connection-completed', (event) => {
 
 class Faq{
     constructor(f){
-        this.name = f.name;
-        this.description = f.description;
-        this.timing = f.timing || 1;
-        this.ref = f.ref || false;
-        this.closed = ko.observable(true)
+        this.name =         f.name;
+        this.icon =         ko.observable(f.icon || `/images/auction/faq.svg`)
+        this.description =  f.description;
+        this.timing =       f.timing || 1;
+        this.ref =          f.ref || false;
+        this.closed =       ko.observable(true)
         this.toggle = () => {
             console.log(!this.closed())
             this.closed(!this.closed())
@@ -95,18 +96,21 @@ class Ref{
 class Page{
     constructor(d,tg,handleError,host,userLoad,drawDate){
         this.showAlert = (txt) => tg.showAlert(txt);
-        this.active =       ko.observable(`lobby`);
+        
+        this.active =           ko.observable(`lobby`);
+
         this.transactionsOpen = ko.observable(false);
         
         this.showTransactions=()=>{
             this.transactionsOpen(!this.transactionsOpen())
         }
 
-        this.faqs = ko.observableArray(d.faqs.map(f=>new Faq(f)))
-        this.refFaqs = ko.observableArray(d.faqs.filter(f=>f.ref).map(f=>new Faq(f)))
+        this.faqs =     ko.observableArray(d.faqs.map(f=>new Faq(f)))
+        this.refFaqs =  ko.observableArray(d.faqs.filter(f=>f.ref).map(f=>new Faq(f)))
 
         this.sactive= (v)=> {
             this.active(v)
+            console.log(v)
             if(v == `profile`){
                 this.transactions([])
                 userLoad(`transactions`).then(transactions=>{
