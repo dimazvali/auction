@@ -5,6 +5,21 @@ const { createHash,createHmac } = require('node:crypto');
 const { getUser } = require("./methods");
 const { FieldValue } = require("firebase-admin/firestore");
 
+function consistencyCheck(o,req,res){
+    if(!o) o = {};
+    let missing = [];
+    Object.keys(o).forEach(type=>{
+        if(!req.body[type]) missing.push(o[type])
+    })
+
+    if(missing.length){
+        res.status(400).send(`Пропущено поле ${missed.join(', ')}`)
+        return false;
+    } else {
+        return true
+    }
+}
+
 
 function authTG(req,res,token,adminTokens,udb,registerUser,tokenName){
 
@@ -723,6 +738,7 @@ function cutMe(txt, limit) {
 
 
 module.exports = {
+    consistencyCheck,
     ifBefore,
     sanitize,
     authTG,

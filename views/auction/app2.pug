@@ -1,0 +1,176 @@
+
+doctype html
+html
+  head
+    title auction
+    script(src='https://telegram.org/js/telegram-web-app.js')
+
+    meta(name='viewport' content='width=device-width, initial-scale=1.0,user-scalable=no')
+    meta(name='description' content='Попробуйте — вам понравится.')
+
+    link(rel='stylesheet', href='/stylesheets/auction/app2.css')
+    link(rel="preconnect", href="https://fonts.googleapis.com")
+    link(rel="preconnect", href="https://fonts.gstatic.com")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap")
+
+    
+    script(src='/javascripts/knockout.js')
+    script(type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js")
+    script(type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js")
+    script(type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js")
+    script(type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js")
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.js')
+    
+    script!=`let botLink="${botLink}"`
+    script!=`let translations=${JSON.stringify(translations)}`
+    script!=`let lang="${lang}"`
+    script!=`intention=${start ? `"${start}"` : false }`
+    
+    script(src='/javascripts/common.js')
+    script(src='/javascripts/appCommon.js')
+    script(type="module" src='/javascripts/auction/classes.js')
+    
+    script!=`${start?`let start="${start}"`:'let start=null'}`
+  body#b
+    script!=`let authNeeded=${authNeeded}`
+    .popup.hidden
+    .popup.hidden(data-bind="hidden:active()!='refs',attr:{shown:active()!='profile',class:active()!='refs'?`hidden`:`reg`}")
+        div
+            .flexSpread.h64
+                div.h36.box2
+                    span.ton.score(data-bind="html:`${tonBalance().toFixed(2)}`, event:{click:()=>showTransactions()}")
+                div.flex
+                    div.h36.box2.radiant
+                        img(onclick="showFaq(`faq`)" src="/images/auction/faq.svg", alt="")
+                    img.ava2(data-bind="attr:{src:avatar}")
+            .section
+                h3 Реферальная программа
+                .grid2
+                    .box2.big
+                        p.t Рефералов
+                        p.score(data-bind="text:refs().length")
+                    .box2.big
+                        p.t Их ставок
+                        p.score(data-bind="text:refTonStakes")
+                .box2.big
+                    p.t Всего заработано
+                        p.ton.score(data-bind="text:refTonScore().toFixed(2)")
+                .box2.big.vector
+                    p.blue.t Доступно к выводу
+                        p.ton.score(data-bind="text:refTonScore().toFixed(2)")
+            .section
+                h3 Ваши рефералы:
+                table
+                    thead
+                        tr
+                            th Реферал
+                            th Ставки
+                            th Доход
+                    tbody(data-bind="foreach:refs")
+                        tr
+                            td(data-bind="text:username")
+                            td.ton(data-bind="text:Math.floor(Math.random()*10)")
+                            td.ton(data-bind="text:Math.floor(Math.random()*10)")
+            .section
+                h3 Часто задаваемые вопросы
+                table.ref(data-bind="foreach:refFaqs")
+                    tr(data-bind="attr:{class:closed()?`down`:`up`}")
+                        td.score.q(data-bind="text:name, event:{click:()=>toggle()}")
+                    tr(data-bind="attr:{class:closed()?`hidden`:`reg`}") 
+                        td(data-bind="hidden:closed(), text: description")
+
+
+    .popup.hidden(data-bind="hidden:active()!='profile',attr:{shown:active()!='profile',class:active()!='profile'?`hidden`:`reg`}")
+        div
+            //- button.thin(onclick="showFaq(`faq`)") help
+            .flexSpread.h64
+                div.h36.box2
+                    span.ton.score(data-bind="html:`${tonBalance().toFixed(2)}`, event:{click:()=>showTransactions()}")
+                div.flex
+                    div.h36.box2.radiant
+                        img(onclick="showFaq(`faq`)" src="/images/auction/faq.svg", alt="")
+                    img.ava2(data-bind="attr:{src:avatar}")
+            .modal(data-bind="attr:{class:transactionsOpen()?'modal':'hidden'}")
+                h2(data-bind="event:{click:()=>showTransactions()}") История
+                .vScroll
+                    table
+                        thead
+                            tr
+                                th Действие
+                                th Сумма
+                                th Дата
+                        tbody(data-bind="foreach:transactions")
+                            tr
+                                td(data-bind="text:comment")
+                                td.ton(data-bind="text:amount.toFixed(2)")
+                                td(data-bind="text:date")
+            .section
+                h3 Статистика ставок
+                .grid2
+                    .box2.big
+                        p.t Сумма ставок
+                        p.ton.score(data-bind="text:totalStaked().toFixed(2)")
+                    .box2.big
+                        p.t Количество ставок
+                        p.score(data-bind="text:stakes")
+                .box2.big.vector
+                    p.blue.t Сумма выигрышей
+                        p.ton.score(data-bind="text:total().toFixed(2)")
+
+            //- .flexLeft
+            //-     div.avaContainer
+            //-         img.ava(data-bind="attr:{src:avatar}")
+            //-         //- 
+            //-         span.bal(data-bind="html:`💎 ${tonBalance()}`")
+            //-     p.center(data-bind="html:`рефералов ${refs()}`")
+            //-     p.center(data-bind="html:`реферальная ссылка:<br>${botLink}?ref=${userId()}`, event:{click:()=>copyRef()}")
+                    
+            //-     h3(data-bind="text:username")
+            //- button(data-bind="event:{click:()=>$root.requestPaymentTon(10)}") 💎 Пополнить Тон
+            //- button#ton-connect
+            //- #sendMe
+            //- button(data-bind="event:{click:()=>$root.requestPayment(10)}") Пополнить счет
+            //- div.mTop(data-bind="foreach:transactions")
+            //-     div.transaction(data-bind="event:{click:()=>$root.showAlert(`${date}\n\n${comment}: ⭐${amount}`)}")
+            //-         span.info(data-bind="text:comment")
+            //-         span.info.sum(data-bind="text:amount")
+    .popup.reg(data-bind="hidden:active()!='lobby',attr:{shown:active()!='lobby',class:active()!='lobby'?`hidden`:`reg`}")
+        div
+            .flexSpread.h64
+                div.h36.box2
+                    span.ton.score(data-bind="html:`${tonBalance().toFixed(2)}`, event:{click:()=>showTransactions()}")
+                div.flex
+                    div.h36.box2.radiant
+                        img(onclick="showFaq(`faq`)" src="/images/auction/faq.svg", alt="")
+                    img.ava2(data-bind="attr:{src:avatar}")
+            div(data-bind="foreach:iterations")
+                .container.auction(data-bind="shown:active, attr:{'data-active':active,'data-ton':ton}")
+                    .flex.s
+                        div.auctionId(data-bind="text:id.slice(0,6)")
+                        .flex.topCenterLine
+                            div.star(data-bind="attr:{'data-on':(stakeHolder() == $root.hash())}")
+                            div.crown(data-bind="attr:{'data-on':(stakeHolder() == $root.hash())}")
+                        div.history(data-bind="event:{click:()=>showHistory()}")
+                    .flex.s
+                        .winner(data-bind="text:stakeHolder() == $root.hash()? 'вы' : (stakeHolderId()||'—')")
+                        div.pool(data-bind="text: stake().toFixed(2)")
+                        .countDown(data-bind="text:left")
+                    button.stakeButton(data-bind=`attr:{disabled:stakeHolder()==$parent.hash()},click:$root.stake,text:stakeHolder()==$parent.hash()?"${translations.lead[lang]}":'${translations.bet[lang]} ('+base()+')'`)
+    .popup(data-bind="hidden:active()!='current',attr:{shown:active()!='current',class:active()!='current'?`hidden`:`reg`}")
+    
+    #footer.grid
+        #lobby(data-bind="event:{click:()=>sactive('lobby')}, attr:{'data-chosen':active()=='lobby'?true:false}")
+            img(src="/images/auction/star_off.svg")
+            //- span!=translations.auctions[lang]
+        #wallet
+            img(src="/images/auction/wallet_off.svg")
+            //- span пополнение
+        #refs(data-bind="event:{click:()=>sactive('refs')}")
+            img(src="/images/auction/refs_off.svg")
+            //- span рефералы
+        #profile(data-bind="event:{click:()=>sactive('profile')}")
+            img(src="/images/auction/profile_off.svg")
+            //- span профиль
+        
+                
+  script(type="module" src='/javascripts/auction/app2.js')

@@ -35,6 +35,10 @@ function showUsers(){
     showScreen(`Пользователи`,`users`,showUserLine,false,false,false,false,false,`.sDivided`)
 }
 
+function showFaqs(){
+    showScreen(`FAQ`,`faqs`,showFaqLine,addFaq)
+}
+
 function showAuctions(){
     // TBD добавить стили подсказок
     showScreen(`Аукционы`,`auctions`,showAuctionLine,addAuction,false,true)
@@ -65,11 +69,33 @@ function showIterationLine(a){
 }
 
 function showUserLine(u){
-    let c = listContainer(u,true,{iterations: `аукционов`, score:`текущий счет`, total: `сальдо`});
+    let c = listContainer(u,true,{iterations: `аукционов`, tonScore:`TON`, refs: `привел`, ref:`реферал`, total: `сальдо`});
         c.append(ce(`h3`,false,false,uname(u, u.id),{
             onclick:()=>showUser(u.id)
         }))
     return c;
+}
+
+function showFaqLine(f){
+    let c = listContainer(f,true,{
+        timing: `тайминг`
+    });
+    c.append(ce(`h3`,false,false,f.name,{
+        onclick:()=>showFaq(f.id)
+    }))
+    return c;
+}
+
+
+
+
+function addFaq(){
+    addScreen(`faqs`,`Новый ФАК`,{
+        name:           {placeholder:   `название`},
+        description:    {placeholder: `текст`, tag: `textarea`},
+        timing:         {placeholder:   `время`,        type: `number`},
+        icon:           {placeholder:   `иконка`}
+    })
 }
 
 function addAuction(){
@@ -101,6 +127,20 @@ function addTransaction(userId,callback){
         user:       {placeholder:`id пользователя`, type:`hidden`, value: userId},
         amount:     {placeholder: `сумма`, type: `number`}
     },callback)
+}
+
+function showFaq(id){
+
+    let p = preparePopupWeb(`auctionsIterations_${id}`,false,false,true);
+    
+    load(`faqs`,id).then(f=>{
+        p.append(ce('h1', false, false, `${f.name}`))
+        p.append(ce(`p`,false,false,`${f.description}`,false,true))
+        p.append(ce(`p`,false,false,`Тайминг: ${f.timing}`))
+        p.append(ce(`p`,false,false,`Иконка: ${f.icon}`))
+
+        p.append(deleteButton(`faqs`,id))
+    })
 }
 
 function showIteration(id){

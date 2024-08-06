@@ -3,6 +3,9 @@ const ngrok = process.env.ngrok;
 const host = `auction`
 const token = process.env.auctionToken;
 const defaultIterationLength = 30;
+const casinoRevenue = .15
+const refRevenue = .1
+
 
 var beginCell = require('ton').beginCell;
 
@@ -52,6 +55,8 @@ const {
     ifBefore,
     authWebApp,
     alertMe,
+    consistencyCheck,
+    sanitize,
 } = require('./common.js')
 
 
@@ -156,9 +161,13 @@ setTimeout(function () {
 }, 1000)
 
 
-setInterval(() => {
-    checkIncoming()
-}, 3000);
+
+if(!process.env.develop){
+    // setInterval(() => {
+    //     checkIncoming()
+    // }, 3000);
+    
+}
 
 let processedPayments = {};
 
@@ -196,9 +205,9 @@ function checkIncoming(){
             })
         })
         .catch(err=>{
-            alertAdmins({
-                text: `Ошибка обновления переводов: ${err.message}`
-            })
+            // alertAdmins({
+            //     text: `Ошибка обновления переводов: ${err.message}`
+            // })
         })
 }
 
@@ -215,6 +224,9 @@ let transactions =              fb.collection(`${host}Transactions`);
 let hashes =                    fb.collection(`${host}UsersHashes`);
 let invoices =                  fb.collection(`${host}Invoices`);
 let tonPayments =               fb.collection(`${host}tonPayments`);
+let refStakes =                 fb.collection(`${host}refStakes`)
+let faqs =                      fb.collection(`${host}Faqs`);
+
 let iterations = {}
 
 
@@ -246,6 +258,10 @@ if(!process.env.develop) ifBefore(auctionsIterations).then(col=>{
 
 
 const datatypes = {
+    faqs:{
+        col:        faqs,
+        newDoc:     faqAdd
+    },
     transactions:{
         col:    transactions,
         newDoc: transactionsAdd,
@@ -370,8 +386,8 @@ const locals = {
         },
         stakeHolderChanged:(i)=>{
             return {
-                ru:  `Ваша ставка бита! Скорее! Вы еще можете выиграть ${i.stake + Number(i.base)} звезд!`,
-                en:  `Your bid is beaten! Hurry up! You can still win ${i.stake + Number(i.base)} stars!`
+                ru:  `Ваша ставка бита! Скорее! Вы еще можете выиграть ${(i.stake + Number(i.base)).toFixed(1)} звезд!`,
+                en:  `Your bid is beaten! Hurry up! You can still win ${(i.stake + Number(i.base)).toFixed(1)} stars!`
             }
         },
         iterationOver:(iteration)=>{
@@ -382,8 +398,8 @@ const locals = {
         },
         congrats: (iteration)=> {
             return {
-                ru: `Поздравляем! Вы выиграли ${iteration.stake} звезд!`,
-                en: `Congratulations! You have won ${iteration.stake} stars!`,
+                ru: `Поздравляем! Вы выиграли ${iteration.stake.toFixed(1)} звезд!`,
+                en: `Congratulations! You have won ${iteration.stake.toFixed(1)} stars!`,
             }
         }
     },
@@ -454,6 +470,20 @@ function mask(id){
     return `*****${id.slice(id.length-2,id.length)}`
 }
 
+function userIncrement(user, field, val){
+
+    devlog(`обновляем юзера ${user.id}: ${field}: ${val}`)
+
+    if(!val) val = 1;
+    udb.doc(user.id.toString()).update({
+        [field]: FieldValue.increment(val)
+    })
+    rtb.ref(`${host}/users/${user.hash}`).update({
+        [field]:  database.ServerValue.increment(val)
+    })
+
+}
+
 router.all(`/api/:method/:id`,(req,res)=>{
 
     let token = req.signedCookies.userToken;
@@ -506,7 +536,10 @@ router.all(`/api/:method/:id`,(req,res)=>{
                                     })
     
                                     score(user,+i.base*-1, i, userLang(locals.termsAndButtons.stake,user.language_code));
-    
+                                    
+                                    let cv = +i.base*casinoRevenue
+                                    let stakeUpdate = +i.base - cv
+
                                     auctionsBets.add({
                                         auctionsIteration:  i.id,
                                         user:               +user.id,
@@ -514,15 +547,59 @@ router.all(`/api/:method/:id`,(req,res)=>{
                                     })
     
                                     auctionsIterations.doc(req.params.id).update({
-                                        stake:          FieldValue.increment(+i.base),
+                                        stake:          FieldValue.increment(stakeUpdate),
                                         stakeHolder:    user.hash
                                     })
+
+                                    rtb.ref(`${host}/iterations/${i.id}`).update({
+                                        stake:          database.ServerValue.increment(stakeUpdate),
+                                        stakeHolder:    user.hash,
+                                        stakeHolderId:  mask(user.id),
+                                        stakeHolderAva: user.photo_url || null
+                                    })
+
+                                    userIncrement(user,`stakes`,1)
+                                    userIncrement(user,`totalStaked`,+i.base)
+
+
+                                    if(user.ref){
+
+                                        getUser(user.ref,udb)
+                                            .then(refUser=>{
+                                                if(refUser){
+                                                    refStakes.add({
+                                                        createdAt:  new Date(),
+                                                        iteration:  i.id,
+                                                        user:       +user.id,
+                                                        toUser:     user.ref,
+                                                        amount:     cv*refRevenue
+                                                    })
+            
+                                                    userIncrement({
+                                                        id:     refUser.id,
+                                                        hash:   refUser.hash
+                                                    },`refTonScore`,cv*refRevenue)
+
+                                                    userIncrement({
+                                                        id:     refUser.id,
+                                                        hash:   refUser.hash
+                                                    },`refTonStakes`,1)
+
+            
+                                                    if(process.env.develop) {
+                                                        sendMessage2({
+                                                            chat_id: user.ref,
+                                                            text: `(ОТЛАДКА): ${uname(user,user.id)} только что принес вам ${cv*refRevenue} по рефералке.`
+                                                        },false,process.env.auctionToken)
+                                                    }
+                                                }        
+                                            })
+                                        
+                                    }
     
                                     let timerCorrection = null;
     
                                     let left = (+new Date(i.timer._seconds*1000) - +new Date())
-    
-                                    devlog((left/1000)/60)
     
                                     if(left < 1*60*1000) {
                                         devlog(`остается меньше 1 минуты`)
@@ -537,7 +614,7 @@ router.all(`/api/:method/:id`,(req,res)=>{
                                         devlog(`остается меньше 10 минут`)
                                         timerCorrection = 10*60*1000-left
                                     } else if (left < 15*60*1000){
-                                        devlog(`остается меньше 10 минут`)
+                                        devlog(`остается меньше 15 минут`)
                                         timerCorrection = 15*60*1000-left
                                     }
     
@@ -572,12 +649,7 @@ router.all(`/api/:method/:id`,(req,res)=>{
     
     
     
-                                    rtb.ref(`${host}/iterations/${i.id}`).update({
-                                        stake:          database.ServerValue.increment(+i.base),
-                                        stakeHolder:    user.hash,
-                                        stakeHolderId:  mask(user.id),
-                                        stakeHolderAva: user.photo_url || null
-                                    })
+                                    
     
                                     res.send(userLang(locals.termsAndButtons.staked,user.language_code))
     
@@ -587,136 +659,137 @@ router.all(`/api/:method/:id`,(req,res)=>{
                                         comment: `Not enough balance.`
                                     })
                                 }
-                            } else {
-                                if(+user.score >= +i.base){
+                            } 
+                            // else {
+                            //     if(+user.score >= +i.base){
 
-                                    if(i.stakeHolder) ifBefore(udb,{hash:i.stakeHolder}).then(winners=>{
-                                        sendMessage2({
-                                            chat_id: winners[0].id,
-                                            photo: `${ngrok}/images/${host}/beated/${Math.floor(Math.random()*10)}.png`,
-                                            caption: userLang(locals.users.stakeHolderChanged(i),user.language_code),
-                                            reply_markup:{
-                                                inline_keyboard: [[{
-                                                    text: userLang(locals.termsAndButtons.open,user.language_code),
-                                                    web_app: {
-                                                        url: `${ngrok}/${host}/app`
-                                                    }
-                                                }]]
-                                            }
-                                        },`sendPhoto`,process.env.auctionToken,messages)
-                                    })
+                            //         if(i.stakeHolder) ifBefore(udb,{hash:i.stakeHolder}).then(winners=>{
+                            //             sendMessage2({
+                            //                 chat_id: winners[0].id,
+                            //                 photo: `${ngrok}/images/${host}/beated/${Math.floor(Math.random()*10)}.png`,
+                            //                 caption: userLang(locals.users.stakeHolderChanged(i),user.language_code),
+                            //                 reply_markup:{
+                            //                     inline_keyboard: [[{
+                            //                         text: userLang(locals.termsAndButtons.open,user.language_code),
+                            //                         web_app: {
+                            //                             url: `${ngrok}/${host}/app`
+                            //                         }
+                            //                     }]]
+                            //                 }
+                            //             },`sendPhoto`,process.env.auctionToken,messages)
+                            //         })
     
-                                    score(user,+i.base*-1, i, userLang(locals.termsAndButtons.stake,user.language_code));
+                            //         score(user,+i.base*-1, i, userLang(locals.termsAndButtons.stake,user.language_code));
     
-                                    auctionsBets.add({
-                                        auctionsIteration:  i.id,
-                                        user:               +user.id,
-                                        createdAt:          new Date()
-                                    })
+                            //         auctionsBets.add({
+                            //             auctionsIteration:  i.id,
+                            //             user:               +user.id,
+                            //             createdAt:          new Date()
+                            //         })
     
-                                    auctionsIterations.doc(req.params.id).update({
-                                        stake:          FieldValue.increment(+i.base),
-                                        stakeHolder:    user.hash
-                                    })
+                            //         auctionsIterations.doc(req.params.id).update({
+                            //             stake:          FieldValue.increment(+i.base),
+                            //             stakeHolder:    user.hash
+                            //         })
     
-                                    let timerCorrection = null;
+                            //         let timerCorrection = null;
     
-                                    let left = (+new Date(i.timer._seconds*1000) - +new Date())
+                            //         let left = (+new Date(i.timer._seconds*1000) - +new Date())
     
-                                    devlog((left/1000)/60)
+                            //         devlog((left/1000)/60)
     
-                                    if(left < 1*60*1000) {
-                                        devlog(`остается меньше 1 минуты`)
-                                        timerCorrection = 1*60*1000-left
-                                    } else if(left < 3*60*1000) {
-                                        devlog(`остается меньше 3 минут`)
-                                        timerCorrection = 3*60*1000-left
-                                    } else if(left < 5*60*1000) {
-                                        devlog(`остается меньше 5 минут`)
-                                        timerCorrection = 5*60*1000-left
-                                    } else if (left < 10*60*1000){
-                                        devlog(`остается меньше 10 минут`)
-                                        timerCorrection = 10*60*1000-left
-                                    } else if (left < 15*60*1000){
-                                        devlog(`остается меньше 10 минут`)
-                                        timerCorrection = 15*60*1000-left
-                                    }
+                            //         if(left < 1*60*1000) {
+                            //             devlog(`остается меньше 1 минуты`)
+                            //             timerCorrection = 1*60*1000-left
+                            //         } else if(left < 3*60*1000) {
+                            //             devlog(`остается меньше 3 минут`)
+                            //             timerCorrection = 3*60*1000-left
+                            //         } else if(left < 5*60*1000) {
+                            //             devlog(`остается меньше 5 минут`)
+                            //             timerCorrection = 5*60*1000-left
+                            //         } else if (left < 10*60*1000){
+                            //             devlog(`остается меньше 10 минут`)
+                            //             timerCorrection = 10*60*1000-left
+                            //         } else if (left < 15*60*1000){
+                            //             devlog(`остается меньше 10 минут`)
+                            //             timerCorrection = 15*60*1000-left
+                            //         }
     
                                     
-                                    if(timerCorrection){
+                            //         if(timerCorrection){
     
-                                        devlog(i.timer)
-                                        devlog(+i.timer)
+                            //             devlog(i.timer)
+                            //             devlog(+i.timer)
                                         
-                                        devlog(`надо накинуть ${timerCorrection/1000}`)
+                            //             devlog(`надо накинуть ${timerCorrection/1000}`)
     
-                                        let newDate = new Date(i.timer._seconds*1000 + timerCorrection)
+                            //             let newDate = new Date(i.timer._seconds*1000 + timerCorrection)
     
-                                        devlog(`получится ${newDate}`)
+                            //             devlog(`получится ${newDate}`)
     
-                                        auctionsIterations.doc(req.params.id).update({
-                                            timer: newDate
-                                        })
+                            //             auctionsIterations.doc(req.params.id).update({
+                            //                 timer: newDate
+                            //             })
     
-                                        rtb.ref(`/${host}/iterations/${i.id}`).update({
-                                            timer:         +newDate
-                                        })
+                            //             rtb.ref(`/${host}/iterations/${i.id}`).update({
+                            //                 timer:         +newDate
+                            //             })
                                         
-                                        clearInterval(iterations[req.params.id])
+                            //             clearInterval(iterations[req.params.id])
     
-                                        iterations[req.params.id] = setTimeout(()=>{
-                                            getDoc(auctionsIterations,req.params.id).then(iteration=>{
-                                                if(iteration.active) stopIteration(iteration)
-                                            })
-                                        },+newDate - +new Date())
-                                    }
-    
-    
-    
-                                    rtb.ref(`${host}/iterations/${i.id}`).update({
-                                        stake:          database.ServerValue.increment(+i.base),
-                                        stakeHolder:    user.hash,
-                                        stakeHolderId:  mask(user.id),
-                                        stakeHolderAva: user.photo_url || null
-                                    })
-    
-                                    res.send(userLang(locals.termsAndButtons.staked,user.language_code))
+                            //             iterations[req.params.id] = setTimeout(()=>{
+                            //                 getDoc(auctionsIterations,req.params.id).then(iteration=>{
+                            //                     if(iteration.active) stopIteration(iteration)
+                            //                 })
+                            //             },+newDate - +new Date())
+                            //         }
     
     
-                                } else {
     
-                                    let toPay = +i.base - +user.score;
+                            //         rtb.ref(`${host}/iterations/${i.id}`).update({
+                            //             stake:          database.ServerValue.increment(+i.base),
+                            //             stakeHolder:    user.hash,
+                            //             stakeHolderId:  mask(user.id),
+                            //             stakeHolderAva: user.photo_url || null
+                            //         })
     
-                                    invoices.add({
-                                        user:       +user.id,
-                                        iteration:  req.params.id,
-                                        amount:     toPay
-                                    }).then(s=>{
-                                        sendMessage2({
-                                            "chat_id": user.id,
-                                            "title": `${toPay} звезд`,
-                                            "description": userLang(locals.users.toPayDesc,user.language_code),
-                                            "payload": s.id,
-                                            "currency": "XTR",
-                                            "prices": [{
-                                                "label":    userLang(locals.termsAndButtons.priceLabel,user.language_code),
-                                                "amount":   toPay
-                                            }]
-                                        }, 'createInvoiceLink', process.env.auctionToken).then(d=>{
-                                            devlog(d.result)
+                            //         res.send(userLang(locals.termsAndButtons.staked,user.language_code))
+    
+    
+                            //     } else {
+    
+                            //         let toPay = +i.base - +user.score;
+    
+                            //         invoices.add({
+                            //             user:       +user.id,
+                            //             iteration:  req.params.id,
+                            //             amount:     toPay
+                            //         }).then(s=>{
+                            //             sendMessage2({
+                            //                 "chat_id": user.id,
+                            //                 "title": `${toPay} звезд`,
+                            //                 "description": userLang(locals.users.toPayDesc,user.language_code),
+                            //                 "payload": s.id,
+                            //                 "currency": "XTR",
+                            //                 "prices": [{
+                            //                     "label":    userLang(locals.termsAndButtons.priceLabel,user.language_code),
+                            //                     "amount":   toPay
+                            //                 }]
+                            //             }, 'createInvoiceLink', process.env.auctionToken).then(d=>{
+                            //                 devlog(d.result)
                                             
-                                            res.status(400).json({
-                                                success: false,
-                                                comment: userLang(locals.errors.notEnoughStars,user.language_code),
-                                                invoice:  d.result
-                                            })
-                                        })
-                                    })
+                            //                 res.status(400).json({
+                            //                     success: false,
+                            //                     comment: userLang(locals.errors.notEnoughStars,user.language_code),
+                            //                     invoice:  d.result
+                            //                 })
+                            //             })
+                            //         })
                                     
     
                                     
-                                }
-                            }
+                            //     }
+                            // }
                             
                         }).catch(err=>{
                             handleError(err,res)
@@ -746,26 +819,12 @@ function score(user, delta, iteration, comment, ton){
         ton:                iteration.ton ? true : false,
         comment:            comment || null
     })
-    if(iteration.ton || ton){
-        
-        udb.doc(user.id).update({
-            tonScore: FieldValue.increment(delta)
-        })
-    
-        rtb.ref(`${host}/users/${user.hash}`).update({
-            tonScore:  database.ServerValue.increment(delta)
-        })
 
+    if(iteration.ton || ton){
+        userIncrement(user,`tonScore`,delta)
     } else {
-        udb.doc(user.id).update({
-            score: FieldValue.increment(delta)
-        })
-    
-        rtb.ref(`${host}/users/${user.hash}`).update({
-            score:  database.ServerValue.increment(delta)
-        })
-    }
-    
+        userIncrement(user,`score`,delta)
+    }    
 }
 
 
@@ -783,13 +842,15 @@ function log(o) {
     })
 }
 
-function registerUser(u) {
+function registerUser(u, body) {
 
     u.createdAt = new Date();
     u.active = true;
     u.blocked = false;
     u.score = 0;
     u.tonScore = 0;
+
+    
 
     if(!u.photo_url) u.photo_url = `/images/${host}/avatars/${Math.floor(Math.random()*11)}.png`
     u[u.language_code] = true;
@@ -798,9 +859,27 @@ function registerUser(u) {
 
         // TBD приветствие
 
+        if(body.message && body.message.text){
+            if(body.message.text.indexOf(`ref_`)>-1){
+                ref = body.message.text.split(`ref_`)[1]
+                getUser(ref,udb).then(refUser=>{
+                    
+                    if(refUser) {
+                        
+                        udb.doc(u.id.toString()).update({
+                            ref: +ref
+                        })
+
+                        userIncrement(refUser,`refs`,1)
+                    }
+                })
+            }
+        }
+
         log({
-            user: +u.id,
-            text: `${uname(u,u.id)} регистрируется в боте.`
+            silent: true,
+            user:   +u.id,
+            text:   `${uname(u,u.id)} регистрируется в боте.`
         })
 
         hashes.add({
@@ -873,6 +952,39 @@ function recievePayment(user, payment){
 
     })
 }
+
+function faqAdd(req,res,admin){
+    if(consistencyCheck({
+        name:           `Название`,
+        description:    `Текст`,
+    },req,res)){
+        faqs.add({
+            active:         true,
+            createdAt:      new Date(),
+            createdBy:      +admin.id,
+
+            name:           req.body.name,
+            description:    req.body.description,
+            timing:         +req.body.timing || null,
+            icon:           req.body.icon || null,
+            ref:            req.body.ref ? true : false,
+        }).then(rec=>{
+            
+            log({
+                text: `${uname(admin,admin.id)} создает новый фак «${req.body.name}»`,
+                admin: +admin.id,
+                faq: rec.id
+            })
+
+            res.redirect(`/${host}/web?page=faqs_${rec.id}`)
+        }).catch(err=>{
+            res.status(500).send(err.message)
+        })
+    }
+}
+
+
+
 
 function transactionsAdd(req,res,admin){
     let required = {
@@ -1063,7 +1175,7 @@ router.get(`/`,(req,res)=>{
 router.get(`/test`,(req,res)=>{
     res.sendStatus(200)
 
-    withDraw()
+    // withDraw()
     
     // sendMessage2({
     //     "chat_id": dimazvali,
@@ -1155,7 +1267,8 @@ router.post(`/hook`, (req, res) => {
                     isReply: false
                 })
             }
-            if (!u) return registerUser(user)
+            if (!u) return registerUser(user, req.body)
+            
             if (!u.active) return udb.doc(user.id.toString()).update({
                 active: true,
                 stopped: null
@@ -1177,7 +1290,7 @@ router.post(`/hook`, (req, res) => {
                             inline_keyboard:[[{
                                 text: `${ngrok}`,
                                 web_app:{
-                                    url: `${ngrok}/${host}/app` 
+                                    url: `${ngrok}/${host}/app2` 
                                 }
                             }]]
                         }
@@ -1188,13 +1301,65 @@ router.post(`/hook`, (req, res) => {
                         text: userLang(locals.users.welcome,user.language_code)
                     }, false, token,messages)
                 } else {
-
-                    
-
                     return alertAdmins({
                         text: `${uname(u,u.id)} пишет: ${req.body.message.text}`,
                         user: user.id
                     })
+
+                    // if(req.body.message.text.indexOf(`ref_`)>-1){
+                    //     ref = req.body.message.text.split(`ref_`)[1]
+
+                    //     if(+ref == +u.id) return sendMessage2({
+                    //         chat_id: user.id,
+                    //         text: `Вы не можете быть рефералом самого себя.`
+                    //     },false,token)
+
+                    //     getUser(ref,udb).then(refUser=>{
+                            
+                    //         if(refUser) {
+                    //             if(!u.ref){
+                                    
+                    //                 udb.doc(u.id.toString()).update({
+                    //                     ref: +ref
+                    //                 })
+                
+                    //                 udb.doc(ref).update({
+                    //                     refs: FieldValue.increment(1)
+                    //                 })
+
+                    //                 sendMessage2({
+                    //                     chat_id: user.id,
+                    //                     text: `Ура! Вы — реферал ${ref}.`
+                    //                 },false,token)
+
+                    //                 sendMessage2({
+                    //                     chat_id: ref,
+                    //                     text: `Ура! Вы получили реферала — ${user.id}.`
+                    //                 },false,token)
+
+                    //             } else {
+                    //                 sendMessage2({
+                    //                     chat_id: user.id,
+                    //                     text: `Вы уже реферал ${u.ref}.`
+                    //                 },false,token)
+                    //             }
+                                
+                    //         } else {
+                    //             sendMessage2({
+                    //                 chat_id: user.id,
+                    //                 text: `Невалидный реферальный код.`
+                    //             },false,token)
+                    //         }
+                    //     })
+                    // } else {
+                    //     return alertAdmins({
+                    //         text: `${uname(u,u.id)} пишет: ${req.body.message.text}`,
+                    //         user: user.id
+                    //     })
+                    // }
+                    
+
+                    
                 }
             }
             if(req.body.message.successful_payment){
@@ -1258,9 +1423,23 @@ router.all(`/api/:method`, (req, res) => {
                     case `transactions`:{
                         return ifBefore(transactions,{user: +user.id}).then(col=>res.json(col))
                     }
+                    case `faqs`:{
+                        return ifBefore(faqs).then(col=>{
+                            res.json(col)
+                        })
+                    }
                     case `profile`:{
-                        user.tonPayload = tonPayload(user.hash)
-                        return res.json(user)
+                        return ifBefore(udb,{ref:+user.id}).then(col=>{
+                            user.tonPayload = tonPayload(user.hash)
+                            user.refs = col.map(u=>{
+                                return {
+                                    username:   u.username,
+                                    id:         mask(u.id)
+                                }
+                            })
+                            return res.json(user)
+                        })
+                        
                     }
                     case `auctions`:{
                         return ifBefore(auctions).then(data=>res.json(data))
@@ -1337,7 +1516,17 @@ router.get(`/app`,(req,res)=>{
     res.render(`${host}/app`,{
         start:  req.query.startapp,
         translations: locals,
-        lang:   `ru`
+        lang:   `ru`,
+        botLink: botLink
+    })
+})
+
+router.get(`/app2`,(req,res)=>{
+    res.render(`${host}/app2`,{
+        start:  req.query.startapp,
+        translations: locals,
+        lang:   `ru`,
+        botLink: botLink
     })
 })
 

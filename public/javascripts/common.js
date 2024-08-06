@@ -64,6 +64,42 @@ const helperTexts = {
     }
 }
 
+function faqSquare(f){
+    let c = ce(`div`,false,`faqSquare`)
+    c.append(ce(`img`,false,false,false,{
+        src: f.icon
+    }))
+    let n = ce(`div`,false,`bottom`)
+        if(f.timing) n.append(ce(`span`,false,`timing`,f.timing))
+        n.append(ce(`h2`,false,false,f.name))
+    c.append(n)
+    return c;
+}
+
+function showFaq(){
+    
+    axios.get(`/auction/api/faqs`).then(col=>{
+
+        let m = ce(`div`,false,[`modal`])
+        
+        m.append(ce(`h2`,false,false,`FAQ`,{
+            onclick:()=>m.remove()
+        }))
+
+        let sub = ce(`div`,false, [`vScroll`,`grid2`])
+            
+            col.data.forEach(f=>{
+                sub.append(faqSquare(f))
+            })
+
+            sub.append(ce(`button`,false,`thin`,`скрыть`,{
+                onclick:()=>m.remove()
+            }))
+            
+        m.append(sub)
+        document.body.append(m)
+    })
+}
 
 function helper2(type){
     let m = ce(`div`,false,[`modal`,(Telegram.WebApp.colorScheme=='dark'?`reg`:`light`)])
