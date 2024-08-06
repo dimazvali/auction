@@ -57,7 +57,7 @@ html
             .section
                 h3 Реферальная ссылка
                 .box2.line
-                    span.ws(data-bind="text:`${botLink}?ref=${userId()}`, event:{click:()=>copyRef()}") 
+                    span.ws(data-bind="text:`${botLink}?start=ref_${userId()}`, event:{click:()=>copyRef()}") 
                     .copyButton(data-bind="event:{click:()=>copyRef()}")
                 .grid2
                     .box2.big
@@ -82,9 +82,11 @@ html
                             th Доход
                     tbody(data-bind="foreach:refs")
                         tr
-                            td(data-bind="text:username")
-                            td.ton(data-bind="text:Math.floor(Math.random()*10)")
-                            td.ton(data-bind="text:Math.floor(Math.random()*10)")
+                            td(data-bind="text:'@'+username()")
+                            td(data-bind="text:stakes")
+                            td.ton(data-bind="text:score().toFixed(2)")
+                            //- td.ton(data-bind="text:Math.floor(Math.random()*10)")
+                            //- td.ton(data-bind="text:Math.floor(Math.random()*10)")
             .section
                 h3 Часто задаваемые вопросы
                 table.ref(data-bind="foreach:refFaqs")
@@ -123,7 +125,7 @@ html
                         p.score(data-bind="text:stakes")
                 .box2.big.vector
                     p.blue.t Сумма выигрышей
-                        p.ton.score(data-bind="text:total().toFixed(2)")
+                        p.ton.score(data-bind="text:totalTonScore().toFixed(2)")
 
             //- .flexLeft
             //-     div.avaContainer

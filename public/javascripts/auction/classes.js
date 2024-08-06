@@ -89,7 +89,8 @@ class Faq{
 class Ref{
     constructor(r){
         this.username = ko.observable(r.username || r.id);
-        
+        this.stakes =   ko.observable(r.stakes || 0);
+        this.score =    ko.observable(r.score);
     }
 }
 
@@ -134,9 +135,11 @@ class Page{
         this.stakes =           ko.observable(d.profile.stakes || 0)
         this.total =            ko.observable(d.profile.total || 0)
 
+
+        this.totalTonScore =    ko.observable(0);
         this.balance =          ko.observable(d.profile.score)
         this.tonBalance =       ko.observable(d.profile.tonScore || 0)
-        this.refs =             ko.observable(d.profile.refs || 0)
+        // this.refs =             ko.observable(d.profile.refs || 0)
         // this.iterations =   ko.observableArray(d.iterations.map(i=>new Iteration(i,tg,this.balance())))
         this.iterations =   ko.observableArray([])
         this.userId =       ko.observable(d.profile.id || null)
@@ -265,13 +268,15 @@ class Page{
             if(a){
                 console.log(a);
 
-                this.balance(a.score)
-                this.tonBalance(a.tonScore || 0)
+                this.balance(a.totalTonScore)
+                
 
                 this.totalStaked(a.totalStaked || 0)
                 this.stakes(a.stakes || 0)
                 this.total(a.total || 0)
-
+                
+                this.totalTonScore(a.totalTonScore || 0)
+                this.tonBalance(a.tonScore || 0)
                 this.refTonScore(a.refTonScore || 0)
                 this.refTonStakes(a.refTonStakes || 0)
             }
@@ -455,7 +460,7 @@ class Iteration{
                             row.append(ce(`td`, false, false, r.you ? `Вы` : r.user));
                             row.append(ce(`td`, false, false, drawDate(r.createdAt._seconds*1000)));
                             row.append(ce(`td`, false, false, time(new Date(r.createdAt._seconds*1000))));
-                            row.append(ce(`td`, false, `ton`, a.stake));
+                            row.append(ce(`td`, false, `ton`, a.base));
                         t.append(row);
                         
 

@@ -442,6 +442,12 @@ function stopIteration(iteration,user){
             
             score(winners[0], iteration.stake, iteration, userLang(locals.termsAndButtons.win,winners[0].language_code))
 
+            if(iteration.ton){
+                userIncrement(user,`totalTonScore`, iteration.stake)            
+            } else {
+                userIncrement(user,`totalScore`,delta)
+            }
+            
             ifBefore(auctionsBets,{auctionsIteration: iteration.id}).then(bets=>{
             
                 let users = [... new Set(bets.map(b=>b.user))].filter(u=>+u != +winners[0].id)
@@ -822,8 +828,11 @@ function score(user, delta, iteration, comment, ton){
 
     if(iteration.ton || ton){
         userIncrement(user,`tonScore`,delta)
+        // userIncrement(user,`totalTonScore`,delta)
+        
     } else {
         userIncrement(user,`score`,delta)
+        // userIncrement(user,`totalScore`,delta)
     }    
 }
 
@@ -1433,6 +1442,8 @@ router.all(`/api/:method`, (req, res) => {
                             user.tonPayload = tonPayload(user.hash)
                             user.refs = col.map(u=>{
                                 return {
+                                    stakes:     u.stakes || 0,
+                                    score:      (u.totalStaked||0)*refRevenue*casinoRevenue,
                                     username:   u.username,
                                     id:         mask(u.id)
                                 }
@@ -1523,10 +1534,10 @@ router.get(`/app`,(req,res)=>{
 
 router.get(`/app2`,(req,res)=>{
     res.render(`${host}/app2`,{
-        start:  req.query.startapp,
-        translations: locals,
-        lang:   `ru`,
-        botLink: botLink
+        start:          req.query.startapp,
+        translations:   locals,
+        lang:           `ru`,
+        botLink:        botLink
     })
 })
 
