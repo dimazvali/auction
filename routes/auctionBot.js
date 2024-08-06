@@ -443,9 +443,9 @@ function stopIteration(iteration,user){
             score(winners[0], iteration.stake, iteration, userLang(locals.termsAndButtons.win,winners[0].language_code))
 
             if(iteration.ton){
-                userIncrement(user,`totalTonScore`, iteration.stake)            
+                userIncrement(winners[0],`totalTonScore`, iteration.stake)            
             } else {
-                userIncrement(user,`totalScore`,delta)
+                userIncrement(winners[0],`totalScore`,delta)
             }
             
             ifBefore(auctionsBets,{auctionsIteration: iteration.id}).then(bets=>{
