@@ -1,11 +1,12 @@
 const ngrok2 = process.env.ngrok2;
-const ngrok = process.env.ngrok;
+const ngrok = process.env.ngrok2;
 const host = `auction`
 const token = process.env.auctionToken;
 const defaultIterationLength = 30;
 const casinoRevenue = .15;
 const refRevenue = .1;
 const withdrawMin = 0.5;
+var QRCode =    require('qrcode')
 
 const curScoreTon =     `текущий баланс в тон`
 // tonScore
@@ -506,6 +507,28 @@ function mask(id){
     return `***${id.slice(id.length-4,id.length)}`
 }
 
+router.get('/qr', async (req, res) => {
+    if (req.query.user) {
+        QRCode.toFile(__dirname + `/../public/images/auction/qr/invite_${req.query.user}.png`, `${botLink}?start=ref_${req.query.user}`, {
+            color: {
+                dark: req.query.dark || '#0E1728',
+                light: req.query.light || '#ffffff',
+            },
+            maskPattern: req.query.m || 0,
+            type: 'png',
+        }).then(s => {
+            res.sendFile(`invite_${req.query.user}` + '.png', {
+                root: './public/images/auction/qr/'
+            })
+        }).catch(err => {
+            console.log(err)
+            res.sendStatus(500)
+        })
+    } else {
+        res.status(500).send(`no place provided`)
+    }
+})
+
 function userIncrement(user, field, val){
 
     devlog(`обновляем юзера ${user.id}: ${field}: ${val}`)
@@ -554,11 +577,12 @@ router.all(`/api/:method/:id`,(req,res)=>{
                             if(!i || !i.active) return res.status(400).send(userLang(locals.errors.noSuchAuction,user.language_code))
                             devlog(user.score,i.base)
                             if(i.ton){
-
-                                devlog(user.curScoreTon);
-                                devlog(i.base);
                                 
                                 if(+user.curScoreTon >= +i.base){
+
+                                    rtb.ref(`${host}/iterations/${req.params.id}/users`).update({
+                                        [user.hash]: true
+                                    })
 
                                     if(i.stakeHolder) ifBefore(udb,{hash:i.stakeHolder}).then(winners=>{
                                         sendMessage2({
@@ -589,7 +613,8 @@ router.all(`/api/:method/:id`,(req,res)=>{
     
                                     auctionsIterations.doc(req.params.id).update({
                                         stake:          FieldValue.increment(stakeUpdate),
-                                        stakeHolder:    user.hash
+                                        stakeHolder:    user.hash,
+                                        stakeHolderId:  mask(user.id),
                                     })
 
                                     rtb.ref(`${host}/iterations/${i.id}`).update({
@@ -598,6 +623,8 @@ router.all(`/api/:method/:id`,(req,res)=>{
                                         stakeHolderId:  mask(user.id),
                                         stakeHolderAva: user.photo_url || null
                                     })
+
+                                    
 
                                     userIncrement(user,`totalStakesTon`,1)
                                     userIncrement(user,`totalStakedTon`,+i.base)
@@ -1558,7 +1585,9 @@ router.all(`/api/:method`, (req, res) => {
                     case `auctions`:{
                         return ifBefore(auctions).then(data=>res.json(data))
                     }
-
+                    case `before`:{
+                        return ifBefore(auctionsIterations,{active:false}).then(data=>res.json(data.slice(0,20)))
+                    }
                     case `auctionsIterations`:{
                         return ifBefore(auctionsIterations).then(data=>res.json(data))
                     }
@@ -1934,4 +1963,4 @@ function clearAll(){
     })
 }
 
-clearAll()
+// clearAll()

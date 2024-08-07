@@ -134,6 +134,15 @@ class Page{
             }
         }
 
+        this.archive = ko.observableArray([])
+
+        this.showPrevousIterations = () =>{
+            this.archive([])
+            this.sactive(`before`)
+            userLoad(`before`)
+                .then(data=>this.archive(data.map(i=>new IterationArchive(i,d.profile.id))))
+        }
+
 
         this.transactions =     ko.observableArray([])
         this.auctions =         ko.observableArray(d.auctions.map(a=>new Auction(a)))
@@ -296,7 +305,7 @@ class Page{
             query(ref(db,`auction/iterations`), orderByChild(`active`),equalTo(true)),
             a=>{
                 console.log(a.val())
-                let n = new Iteration(a.val(),tg,this.balance(),drawDate)
+                let n = new Iteration(a.val(),tg,this.balance(),drawDate,this.hash())
                 if(this.iterations.indexOf(n)==-1){
                     this.iterations.push(n)
                 }
@@ -436,69 +445,157 @@ function time(date){
     return date.getHours()+':'+z(date.getMinutes())+':'+z(date.getSeconds())
 }
 
+function showIterationHistory(id,base){
+    
+        axios.get(`/auction/api/iterationStakes/${id}`).then(col=>{
+            let m = ce(`div`,false,[`modal`,`reg`])
+            m.append(ce(`h2`,false,false,`История`,{
+                onclick:()=>m.remove()
+            }))
+            let sub = ce(`div`,false, `vScroll`)
+                let t = ce(`table`);
+                sub.append(t);
+                let h = ce(`tr`)
+                    t.append(h)
+                    h.append(ce(`th`,false,false,`ID`))
+                    h.append(ce(`th`,false,false,`Дата`))
+                    h.append(ce(`th`,false,false,`Время`))
+                    h.append(ce(`th`,false,false,`Ставка`))
+                col.data.forEach(r=>{
+                    let row = ce(`tr`)
+                        row.append(ce(`td`, false, false, r.you ? `Вы` : r.user));
+                        row.append(ce(`td`, false, false, drawDate(r.createdAt._seconds*1000)));
+                        row.append(ce(`td`, false, false, time(new Date(r.createdAt._seconds*1000))));
+                        row.append(ce(`td`, false, `ton`, base));
+                    t.append(row);
+                    
 
-class Iteration{
-    constructor (a,tg,balance,drawDate){
-        this.ton =          ko.observable(a.ton || false);
-        this.id =           a.id
-        this.name =         ko.observable(a.auctionName),
-        this.active =       ko.observable(a.active),
-        this.base =         ko.observable(a.base),
-        this.stake =        ko.observable(a.stake),
-        this.stakeHolder =  ko.observable(a.stakeHolder),
-        this.stakeHolderId =  ko.observable(a.stakeHolderId),
-        this.timer =        ko.observable(a.timer._seconds ? a.timer._seconds*1000 : a.timer)
-        this.left =         ko.observable(time2(+new Date(a.timer._seconds ? a.timer._seconds*1000 : a.timer) - new Date()))
-        
-        this.showHistory = ()=>{
-            axios.get(`/auction/api/iterationStakes/${a.id}`).then(col=>{
-                let m = ce(`div`,false,[`modal`,(tg.colorScheme=='dark'?`reg`:`light`)])
-                m.append(ce(`h2`,false,false,`История`,{
+                    // sub.append(ce(`p`,false,false,`${drawDate(r.createdAt._seconds*1000,false,{time:true})}`))
+                    // sub.append(ce(`p`,false,`info`, r.you? `Вы делаете ставку ${a.base}.` : `Юзер ${r.user} делает ставку ${a.base}.`))
+                    // sub.append(ce(`p`,false,`info`,r.you? `Вы лидируете на аукционе` : `Юзер ${r.user} лидирует на аукционе.`))
+                })
+
+                sub.append(ce(`button`,false,`thin`,`скрыть`,{
                     onclick:()=>m.remove()
                 }))
-                let sub = ce(`div`,false, `vScroll`)
-                    let t = ce(`table`);
-                    sub.append(t);
-                    let h = ce(`tr`)
-                        t.append(h)
-                        h.append(ce(`th`,false,false,`ID`))
-                        h.append(ce(`th`,false,false,`Дата`))
-                        h.append(ce(`th`,false,false,`Время`))
-                        h.append(ce(`th`,false,false,`Ставка`))
-                    col.data.forEach(r=>{
-                        let row = ce(`tr`)
-                            row.append(ce(`td`, false, false, r.you ? `Вы` : r.user));
-                            row.append(ce(`td`, false, false, drawDate(r.createdAt._seconds*1000)));
-                            row.append(ce(`td`, false, false, time(new Date(r.createdAt._seconds*1000))));
-                            row.append(ce(`td`, false, `ton`, a.base));
-                        t.append(row);
+                
+            m.append(sub)
+            document.body.append(m)
+        })
+
+}
+
+class IterationArchive{
+    constructor(i,userId){
+        this.date =             new Date(i.createdAt._seconds*1000).toLocaleDateString()
+        this.id =               i.id;
+        this.stakeHolderId =    ko.observable(i.stakeHolderId);
+        this.stakeHolder =      ko.observable(i.stakeHolder);
+        this.stake =            ko.observable(i.stake);
+        this.base =             ko.observable(i.base);
+        this.time =             time2(+new Date(i.timer._seconds*1000)-new Date(i.createdAt._seconds*1000));
+        this.showHistory = ()=>{
+            showIterationHistory(i.id,i.base)
+        }
+        this.showShare = function(){
+            let c = ce(`div`,false,[`box2`,`big`,`float`,`vector`],false,{
+                onclick:()=>c.remove()
+            })
+                let h = ce(`div`,false,[`flexSpread`,`borderBottom`])
+                    h.append(ce(`span`,false,`info`,`Дата`))
+                    h.append(ce(`span`,false,`info`,this.date))
+                c.append(h);
+                let details = ce(`div`,false,`flexSpread`)
+                
+                let id = ce(`div`)
+                    id.append(ce(`p`,false,`info`,`ID Аукциона`))
+                    id.append(ce(`p`,false,`topLess`,this.id.slice(0,6)))
+                details.append(id)
+
+                let t = ce(`div`)
+                    t.append(ce(`p`,false,`info`,`Длительность`))
+                    t.append(ce(`p`,false,'topLess',time2(+new Date(i.timer._seconds*1000)-new Date(i.createdAt._seconds*1000))))
+                details.append(t)
+
+                let w = ce(`div`)
+                    w.append(ce(`p`,false,[`info`,`winner`],`Победитель`))
+                    w.append(ce(`p`,false,'topLess',i.stakeHolderId || '—'))
+                details.append(w)
+            c.append(details)
+
+            c.append(ce(`div`,false,[`xl`,`ton`],i.base.toFixed(2)))
+            c.append(ce(`span`,false,`info`,`Сумма выигрыша`))
+            let f = ce(`div`,false,`flexSpread`)
+                let l = ce(`div`)
+                    l.append(ce(`p`,false,`t`,`Ваша реферальная ссылка`))
+                    l.append(ce(`span`,false,`info`,`Поделитесь реферальной ссылкой с друзьями через QR-код`))
+                f.append(l)
+                let r = ce(`img`,false,[`block`,`qr`],false,{
+                    src: `/auction/qr?user=${userId}`
+                })
+                f.append(r)
+            c.append(f);    
+
+            document.body.append(c)
+        }
+    }
+}
+
+class Iteration{
+    constructor (a,tg,balance,drawDate,hash){
+        this.userActive =       ko.observable(false);
+        this.ton =              ko.observable(a.ton || false);
+        this.id =               a.id
+        this.name =             ko.observable(a.auctionName),
+        this.active =           ko.observable(a.active),
+        this.base =             ko.observable(a.base),
+        this.stake =            ko.observable(a.stake),
+        this.stakeHolder =      ko.observable(a.stakeHolder),
+        this.stakeHolderId =    ko.observable(a.stakeHolderId),
+        this.timer =            ko.observable(a.timer._seconds ? a.timer._seconds*1000 : a.timer)
+        this.left =             ko.observable(time2(+new Date(a.timer._seconds ? a.timer._seconds*1000 : a.timer) - new Date()))
+        
+        this.showHistory = ()=>{
+            showIterationHistory(a.id,a.base)
+            // axios.get(`/auction/api/iterationStakes/${a.id}`).then(col=>{
+            //     let m = ce(`div`,false,[`modal`,(tg.colorScheme=='dark'?`reg`:`light`)])
+            //     m.append(ce(`h2`,false,false,`История`,{
+            //         onclick:()=>m.remove()
+            //     }))
+            //     let sub = ce(`div`,false, `vScroll`)
+            //         let t = ce(`table`);
+            //         sub.append(t);
+            //         let h = ce(`tr`)
+            //             t.append(h)
+            //             h.append(ce(`th`,false,false,`ID`))
+            //             h.append(ce(`th`,false,false,`Дата`))
+            //             h.append(ce(`th`,false,false,`Время`))
+            //             h.append(ce(`th`,false,false,`Ставка`))
+            //         col.data.forEach(r=>{
+            //             let row = ce(`tr`)
+            //                 row.append(ce(`td`, false, false, r.you ? `Вы` : r.user));
+            //                 row.append(ce(`td`, false, false, drawDate(r.createdAt._seconds*1000)));
+            //                 row.append(ce(`td`, false, false, time(new Date(r.createdAt._seconds*1000))));
+            //                 row.append(ce(`td`, false, `ton`, a.base));
+            //             t.append(row);
                         
 
-                        // sub.append(ce(`p`,false,false,`${drawDate(r.createdAt._seconds*1000,false,{time:true})}`))
-                        // sub.append(ce(`p`,false,`info`, r.you? `Вы делаете ставку ${a.base}.` : `Юзер ${r.user} делает ставку ${a.base}.`))
-                        // sub.append(ce(`p`,false,`info`,r.you? `Вы лидируете на аукционе` : `Юзер ${r.user} лидирует на аукционе.`))
-                    })
+            //             // sub.append(ce(`p`,false,false,`${drawDate(r.createdAt._seconds*1000,false,{time:true})}`))
+            //             // sub.append(ce(`p`,false,`info`, r.you? `Вы делаете ставку ${a.base}.` : `Юзер ${r.user} делает ставку ${a.base}.`))
+            //             // sub.append(ce(`p`,false,`info`,r.you? `Вы лидируете на аукционе` : `Юзер ${r.user} лидирует на аукционе.`))
+            //         })
 
-                    sub.append(ce(`button`,false,`thin`,`скрыть`,{
-                        onclick:()=>m.remove()
-                    }))
+            //         sub.append(ce(`button`,false,`thin`,`скрыть`,{
+            //             onclick:()=>m.remove()
+            //         }))
                     
-                m.append(sub)
-                document.body.append(m)
-            })
+            //     m.append(sub)
+            //     document.body.append(m)
+            // })
         }
+
         this.ava =          ko.observable(null);
 
-        this.pushStake = (v) =>{
-            console.log(balance)
-            console.log(+this.base())
-            
-            if(balance > +this.base()){
-                tg.showAlert(`ставлю`)
-            } else {
-                tg.showAlert(`нет денег`)
-            }
-        }
 
         this.setAva = (pic) => {
             this.ava(pic)
@@ -520,6 +617,7 @@ class Iteration{
             console.log(a)
             
             if(a){
+                if(a.users && a.users[hash]) this.userActive(true)
                 this.name(a.auctionName)
                 this.active(a.active || false)
                 this.base(a.base)

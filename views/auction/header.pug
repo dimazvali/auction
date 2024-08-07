@@ -1,6 +1,7 @@
 .flexSpread.h64
     div.h36.box2
         span.ton.score(data-bind="html:`${curScoreTon().toFixed(2)}`, event:{click:()=>showTransactions()}")
+    block history
     div.flex
         div.h36.box2.radiant
             img(src="/images/auction/faq.svg" data-bind="event:{click:()=>sactive('faq')}")

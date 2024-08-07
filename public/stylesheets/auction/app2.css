@@ -25,8 +25,9 @@ body {
 }
 
 .info {
-    color: var(--tg-theme-hint-color);
+    color: #5E86B6;
     font-size: small;
+    margin: 0;
 }
 
 button {
@@ -717,11 +718,20 @@ button+button {
     font-size: smaller;
 }
 
-.history {
+.round{
     width: 36px;
     height: 36px;
-    background: url(/images/auction/History.svg) 50% no-repeat, #4378FF1A;
     border-radius: 50%;
+}
+.round+.round{
+    margin-left: 10px;
+}
+.history {
+    background: url(/images/auction/History.svg) 50% no-repeat, #4378FF1A;
+}
+
+.share {
+    background: url(/images/auction/Share.svg) 50% no-repeat, #4378FF1A;
 }
 
 .auctionId {
@@ -853,13 +863,16 @@ thead>tr:first-child {
     bottom: 0px;
 }
 
-span.timing {
+span.tag {
     background: var(--bg2);
     padding: 3px 10px;
     margin-bottom: 5px;
     display: inline-block;
     border-radius: 4px;
     font-size: small;
+    min-height: 1.7em;
+    margin-right: 5px;
+    padding-top: 5px;
 }
 
 span.timing::after {
@@ -944,6 +957,8 @@ p.t+p {
 
 .vector {
     background-image: url(/images/auction/gradient.png), url(/images/auction/Vector.svg);
+    background-position: 50% 100%;
+    background-repeat: no-repeat;
 }
 
 .section{
@@ -1066,4 +1081,60 @@ img.navbar {
 
 [data-chosen]>img.navbar {
     filter: brightness(1) !important;
+}
+
+button.hb {
+    width: fit-content;
+    height: auto;
+}
+
+button.hb::after {
+    content: url(/images/auction/history.svg);
+    filter: brightness(20.5);
+    vertical-align: sub;
+    margin-left: 5px;
+}
+
+.float {
+    position: fixed;
+    top: 50%;
+    transform: translate(0, -50%);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    box-sizing: border-box;
+    width: calc(100% - 36px);
+    box-shadow: 2px 2px 130px 120px var(--bg);
+    border: 0.5px solid;
+    border-image-source: linear-gradient(96.21deg, #87C3FF -5.65%, #2791FC 34.97%, #004B9C 105.65%);
+
+
+}
+
+.flexSpread.borderBottom {
+    height: 30px;
+    border-bottom: 1px solid var(--bg2);
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+.xl.ton {
+    font-size: 40px;
+    font-weight: 600;
+}
+
+.xl.ton::before {
+    content: url(/images/auction/Ton2.svg);
+    vertical-align: baseline;
+    height: 40px;
+    display: inline-block;
+    /* scale: 2; */
+    line-height: 20px;
+}
+
+p.topLess {
+    margin-top: 5px;
+}
+
+.qr {
+    width: 70px;
 }

@@ -49,7 +49,7 @@ html
                 .grid2(data-bind="foreach:faqs")
                     .box2.big(data-bind="event:{click:()=>toggle()}")
                         img.ico(data-bind="attr:{src:icon}")
-                        p.timing(data-bind="text:timing")
+                        p.tag.timing(data-bind="text:timing")
                         p.score(data-bind="text:name")
     .popup.hidden(data-bind="hidden:active()!='refs',attr:{shown:active()!='profile',class:active()!='refs'?`hidden`:`reg`}")
         div
@@ -127,20 +127,35 @@ html
                 .box2.big.vector
                     p.blue.t Сумма выигрышей
                         p.ton.score(data-bind="text:totalScoreTon().toFixed(2)")
-
+    .popup.reg(data-bind="hidden:active()!='before',attr:{shown:active()!='before',class:active()!='before'?`hidden`:`reg`}")
+        div
+            h3 История
+            div(data-bind="foreach:archive")
+                div.box2.big
+                    .flexSpread
+                        .div
+                            p.info(data-bind="text:date")
+                            p.small(data-bind="text:id.slice(0,6)")
+                            .flex
+                                span.small.tag.winner(data-bind="text:stakeHolder() == $root.hash()? 'Вы' : (stakeHolderId()||'—')")
+                                span.small.tag.ton(data-bind="text:stake().toFixed(2)")
+                                span.small.tag(data-bind="text:time")
+                        .div.flex
+                            div.mRight.round.history(data-bind="event:{click:()=>showHistory()}")
+                            div.round.share(data-bind="event:{click:()=>showShare()}")
     .popup.reg(data-bind="hidden:active()!='lobby',attr:{shown:active()!='lobby',class:active()!='lobby'?`hidden`:`reg`}")
         div
-            include header
+            include lobbyHeader
             div(data-bind="foreach:iterations")
                 .container.auction(data-bind="shown:active, attr:{'data-active':active,'data-ton':ton}")
                     .flex.s
                         div.auctionId(data-bind="text:id.slice(0,6)")
                         .flex.topCenterLine
-                            div.star(data-bind="attr:{'data-on':(stakeHolder() == $root.hash())}")
+                            div.star(data-bind="attr:{'data-on':userActive()}")
                             div.crown(data-bind="attr:{'data-on':(stakeHolder() == $root.hash())}")
-                        div.history(data-bind="event:{click:()=>showHistory()}")
+                        div.round.history(data-bind="event:{click:()=>showHistory()}")
                     .flex.s
-                        .winner(data-bind="text:stakeHolder() == $root.hash()? 'вы' : (stakeHolderId()||'—')")
+                        .winner(data-bind="text:stakeHolder() == $root.hash()? 'Вы' : (stakeHolderId()||'—')")
                         div.pool(data-bind="text: stake().toFixed(2)")
                         .countDown(data-bind="text:left")
                     button.stakeButton(data-bind=`attr:{disabled:stakeHolder()==$parent.hash()},click:$root.stake,text:stakeHolder()==$parent.hash()?"${translations.lead[lang]}":'${translations.bet[lang]} ('+base()+')'`)

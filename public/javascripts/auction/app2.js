@@ -14,7 +14,7 @@ function showLoad(){
     tg.MainButton.showProgress()
 }
 
-tg.showAlert(tg.isVerticalSwipesEnabled)
+// tg.showAlert(tg.isVerticalSwipesEnabled)
 
 
 
