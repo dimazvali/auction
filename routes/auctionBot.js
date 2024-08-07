@@ -3,9 +3,35 @@ const ngrok = process.env.ngrok;
 const host = `auction`
 const token = process.env.auctionToken;
 const defaultIterationLength = 30;
-const casinoRevenue = .15
-const refRevenue = .1
+const casinoRevenue = .15;
+const refRevenue = .1;
+const withdrawMin = 0.5;
 
+const curScoreTon =     `текущий баланс в тон`
+// tonScore
+
+const totalScoreTon =   `всего получили в ton`
+// totalTonScore
+
+const totalStakedTon =  `сумма ставок в ton`
+// totalStaked
+
+const totalStakesTon =  `всего ставок в ton`
+// stakes
+
+const curRefScoreTon =     `текущий баланс по рефералке`
+// refTonScore
+
+const totalRefScoreTon =   `всего доход по рефералке`
+// refTonScoreTotal
+
+const totalRefStakesTon =      `всего ставок у рефералов в TON`
+// refTonStakes
+
+
+const requestsStatuses = {
+    cancelledByConsequent: `Отменен последовавшим запросом.`
+}
 
 var beginCell = require('ton').beginCell;
 
@@ -226,6 +252,7 @@ let invoices =                  fb.collection(`${host}Invoices`);
 let tonPayments =               fb.collection(`${host}tonPayments`);
 let refStakes =                 fb.collection(`${host}refStakes`)
 let faqs =                      fb.collection(`${host}Faqs`);
+let requests =                  fb.collection(`${host}Requests`);
 
 let iterations = {}
 
@@ -258,6 +285,9 @@ if(!process.env.develop) ifBefore(auctionsIterations).then(col=>{
 
 
 const datatypes = {
+    requests:{
+        col: requests
+    },
     faqs:{
         col:        faqs,
         newDoc:     faqAdd
@@ -443,7 +473,7 @@ function stopIteration(iteration,user){
             score(winners[0], iteration.stake, iteration, userLang(locals.termsAndButtons.win,winners[0].language_code))
 
             if(iteration.ton){
-                userIncrement(winners[0],`totalTonScore`, iteration.stake)            
+                userIncrement(winners[0],`totalScoreTon`, iteration.stake)            
             } else {
                 userIncrement(winners[0],`totalScore`,delta)
             }
@@ -473,7 +503,7 @@ function stopIteration(iteration,user){
 function mask(id){
     id = id.toString();
     // return id.replace(/...../,'*****') 
-    return `*****${id.slice(id.length-2,id.length)}`
+    return `***${id.slice(id.length-4,id.length)}`
 }
 
 function userIncrement(user, field, val){
@@ -481,13 +511,14 @@ function userIncrement(user, field, val){
     devlog(`обновляем юзера ${user.id}: ${field}: ${val}`)
 
     if(!val) val = 1;
+    
     udb.doc(user.id.toString()).update({
         [field]: FieldValue.increment(val)
     })
+
     rtb.ref(`${host}/users/${user.hash}`).update({
         [field]:  database.ServerValue.increment(val)
     })
-
 }
 
 router.all(`/api/:method/:id`,(req,res)=>{
@@ -523,7 +554,11 @@ router.all(`/api/:method/:id`,(req,res)=>{
                             if(!i || !i.active) return res.status(400).send(userLang(locals.errors.noSuchAuction,user.language_code))
                             devlog(user.score,i.base)
                             if(i.ton){
-                                if(+user.tonScore >= +i.base){
+
+                                devlog(user.curScoreTon);
+                                devlog(i.base);
+                                
+                                if(+user.curScoreTon >= +i.base){
 
                                     if(i.stakeHolder) ifBefore(udb,{hash:i.stakeHolder}).then(winners=>{
                                         sendMessage2({
@@ -564,8 +599,8 @@ router.all(`/api/:method/:id`,(req,res)=>{
                                         stakeHolderAva: user.photo_url || null
                                     })
 
-                                    userIncrement(user,`stakes`,1)
-                                    userIncrement(user,`totalStaked`,+i.base)
+                                    userIncrement(user,`totalStakesTon`,1)
+                                    userIncrement(user,`totalStakedTon`,+i.base)
 
 
                                     if(user.ref){
@@ -584,12 +619,17 @@ router.all(`/api/:method/:id`,(req,res)=>{
                                                     userIncrement({
                                                         id:     refUser.id,
                                                         hash:   refUser.hash
-                                                    },`refTonScore`,cv*refRevenue)
+                                                    },`curRefScoreTon`,cv*refRevenue)
 
                                                     userIncrement({
                                                         id:     refUser.id,
                                                         hash:   refUser.hash
-                                                    },`refTonStakes`,1)
+                                                    },`totalRefScoreTon`,cv*refRevenue)
+
+                                                    userIncrement({
+                                                        id:     refUser.id,
+                                                        hash:   refUser.hash
+                                                    },`totalRefStakesTon`,1)
 
             
                                                     if(process.env.develop) {
@@ -627,9 +667,6 @@ router.all(`/api/:method/:id`,(req,res)=>{
                                     
                                     if(timerCorrection){
     
-                                        devlog(i.timer)
-                                        devlog(+i.timer)
-                                        
                                         devlog(`надо накинуть ${timerCorrection/1000}`)
     
                                         let newDate = new Date(i.timer._seconds*1000 + timerCorrection)
@@ -827,8 +864,8 @@ function score(user, delta, iteration, comment, ton){
     })
 
     if(iteration.ton || ton){
-        userIncrement(user,`tonScore`,delta)
-        // userIncrement(user,`totalTonScore`,delta)
+        userIncrement(user,`curScoreTon`,delta)
+        // userIncrement(user,`totalScoreTon`,delta)
         
     } else {
         userIncrement(user,`score`,delta)
@@ -857,7 +894,7 @@ function registerUser(u, body) {
     u.active = true;
     u.blocked = false;
     u.score = 0;
-    u.tonScore = 0;
+    u.curScoreTon = 0;
 
     
 
@@ -1017,7 +1054,7 @@ function transactionsAdd(req,res,admin){
                 }).then(rec=>{
             
                     udb.doc(req.body.user.toString()).update({
-                        [req.body.ton? `tonScore` : `score`]: FieldValue.increment(+req.body.amount)
+                        [req.body.ton? `curScoreTon` : `score`]: FieldValue.increment(+req.body.amount)
                     }).then(()=>{
 
                         transactions.doc(rec.id).update({
@@ -1027,7 +1064,7 @@ function transactionsAdd(req,res,admin){
                         if(req.body.ton){
                             getDoc(udb,u.id).then(updated=>{
                                 rtb.ref(`auction/users/${u.hash}`).update({
-                                    tonScore: updated.tonScore
+                                    curScoreTon: updated.curScoreTon
                                 })
                             })
                         } else {
@@ -1410,6 +1447,72 @@ router.all(`/api/:method`, (req, res) => {
                 devlog(req.body)
     
                 switch (req.params.method) {
+                    case `withdraw`:{
+
+                        let types = {
+                            ref:    `curRefScoreTon`,
+                            score:  `curScoreTon`
+                        }
+                        
+                        if(!req.body.type) return res.status(400).send(`no type provided`);
+                        if(!types[req.body.type]) return res.status(400).send(`incorrect account type`);
+                        
+                        let account = user[types[req.body.type]];
+
+                        if(req.body.type == `ref`){
+
+                            if(!account || account<0) return res.status(400).send(`insufficient funds`);
+
+                            userIncrement(user, types.ref,     -account);
+                            userIncrement(user, types.score,    account);
+                            
+                            transactions.add({
+                                user:               +user.id,
+                                createdAt:          new Date(),
+                                amount:             account,
+                                ton:                true,
+                                comment:            `Зачисление с реферального счета.`
+                            })
+
+                            res.sendStatus(200);
+
+                        } else {
+                            if(!account || account < withdrawMin) return res.status(400).send(`insufficient funds`);
+
+                            userIncrement(user, types[req.body.type], -account)
+
+                            if(req.body.type == `score`) transactions.add({
+                                user:               +user.id,
+                                createdAt:          new Date(),
+                                amount:             -account,
+                                ton:                true,
+                                comment:            `Вывод средств`
+                            })
+
+                            return requests.add({
+                                user:       +user.id,
+                                username:   uname(user,user.id),
+                                type:       req.body.type,
+                                createdAt:  new Date(),
+                                active:     true,
+                                status:     `new`,
+                                amount:     account
+                            }).then(rec=>{ 
+
+                                res.sendStatus(200);
+
+                                log({
+                                    text:       `${uname(user,user.id)} запрашивает вывод средств по статье ${req.body.type} в размере ${account}.`,
+                                    user:       +user.id,
+                                    request:    rec.id
+                                })
+
+                            }).catch(err=>handleError(err,res))
+                        }
+
+                        break;
+
+                    }
                     case `refill`:{
                         return sendMessage2({
                             "chat_id":      user.id,
@@ -1440,10 +1543,10 @@ router.all(`/api/:method`, (req, res) => {
                     case `profile`:{
                         return ifBefore(udb,{ref:+user.id}).then(col=>{
                             user.tonPayload = tonPayload(user.hash)
-                            user.refs = col.map(u=>{
+                            user.refs = col.sort((a,b)=>(b.totalStakedTon||0)-(a.totalStakedTon||0)).map(u=>{
                                 return {
-                                    stakes:     u.stakes || 0,
-                                    score:      (u.totalStaked||0)*refRevenue*casinoRevenue,
+                                    totalStakesTon:     u.totalStakesTon || 0,
+                                    score:      (u.totalStakedTon||0)*refRevenue*casinoRevenue,
                                     username:   u.username,
                                     id:         mask(u.id)
                                 }
@@ -1805,31 +1908,30 @@ function withDraw(){
     })
 }
 
-// udb.get().then(col=>{
-//     col.docs.forEach(u=>{
-//         hashes.add({
-//             createdAt:  new Date(),
-//             active:     true,
-//             user:       +u.id
-//         }).then(rec=>{
-//             udb.doc(u.id.toString()).update({
-//                 hash: rec.id
-//             })
-//         })
-//     })
-// })
 
+function clearAll(){
+    udb.get().then(users=>{
+        handleQuery(users).forEach(u=>{
+            devlog(u)
+            udb.doc(u.id).update({
+                tonScore: null,
+                totalTonScore: null,
+                totalStaked: null,
+                stakes: null,
+                refTonScore:  null,
+                refTonScoreTotal: null,
+                refTonStakes: null,
 
-// sendMessage2({
-//     user_id:                        5326429,
+                score:              0,
+                totalStakesTon:     0,
+                curScoreTon:        0,
+                totalStakedTon:     0,
+                totalScoreTon:      0
+            })
 
-//     telegram_payment_charge_id:     "F7380379248521067520U5326429B7396872880A1I5434113367314801068"
-// },'refundStarPayment',token)
-//     .then(d=>console.log(d))
+            rtb.ref(`${host}/users/${u.hash}`).set(null)
+        })
+    })
+}
 
-
-// auctionsIterations.where(`active`,'==',true).get().then(col=>{
-//     handleQuery(col).forEach(i=>{
-//         stopIteration(i)
-//     })
-// })
+clearAll()

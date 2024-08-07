@@ -3,7 +3,7 @@ const tg = window.Telegram.WebApp;
 const host = `auction`
 let mcb, mbbc, curLecture, curTicket, curAlert = null;
 
-
+window.Telegram.WebApp.disableVerticalSwipes()
 
 
 function showLoad(){
@@ -13,6 +13,8 @@ function showLoad(){
     })
     tg.MainButton.showProgress()
 }
+
+tg.showAlert(tg.isVerticalSwipesEnabled)
 
 
 
@@ -89,10 +91,7 @@ function toast(txt){
 
 
 
-function shimmer(light){
-    if(light) return tg.HapticFeedback.impactOccurred('light')
-    tg.HapticFeedback.notificationOccurred('success')
-}
+
 
 let confirmed = false;
 

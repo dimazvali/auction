@@ -65,13 +65,14 @@ html
                         p.score(data-bind="text:refs().length")
                     .box2.big
                         p.t Их ставок
-                        p.score(data-bind="text:refTonStakes")
+                        p.score(data-bind="text:totalRefStakesTon")
                 .box2.big
                     p.t Всего заработано
-                        p.ton.score(data-bind="text:refTonScore().toFixed(2)")
+                    p.ton.score(data-bind="text:totalRefScoreTon().toFixed(2)")
                 .box2.big.vector
                     p.blue.t Доступно к выводу
-                        p.ton.score(data-bind="text:refTonScore().toFixed(2)")
+                    p.ton.score(data-bind="text:curRefScoreTon().toFixed(2)")
+                    button.fr(data-bind="attr:{disabled:curRefScoreTon()?false:true},event:{click:()=>requestWithDraw('ref')}") Получить
             .section
                 h3 Ваши рефералы:
                 table
@@ -83,7 +84,7 @@ html
                     tbody(data-bind="foreach:refs")
                         tr
                             td(data-bind="text:'@'+username()")
-                            td(data-bind="text:stakes")
+                            td(data-bind="text:totalStakesTon")
                             td.ton(data-bind="text:score().toFixed(2)")
                             //- td.ton(data-bind="text:Math.floor(Math.random()*10)")
                             //- td.ton(data-bind="text:Math.floor(Math.random()*10)")
@@ -119,31 +120,14 @@ html
                 .grid2
                     .box2.big
                         p.t Сумма ставок
-                        p.ton.score(data-bind="text:totalStaked().toFixed(2)")
+                        p.ton.score(data-bind="text:totalStakedTon().toFixed(2)")
                     .box2.big
                         p.t Количество ставок
-                        p.score(data-bind="text:stakes")
+                        p.score(data-bind="text:totalStakesTon")
                 .box2.big.vector
                     p.blue.t Сумма выигрышей
-                        p.ton.score(data-bind="text:totalTonScore().toFixed(2)")
+                        p.ton.score(data-bind="text:totalScoreTon().toFixed(2)")
 
-            //- .flexLeft
-            //-     div.avaContainer
-            //-         img.ava(data-bind="attr:{src:avatar}")
-            //-         //- 
-            //-         span.bal(data-bind="html:`💎 ${tonBalance()}`")
-            //-     p.center(data-bind="html:`рефералов ${refs()}`")
-            //-     p.center(data-bind="html:`реферальная ссылка:<br>${botLink}?ref=${userId()}`, event:{click:()=>copyRef()}")
-                    
-            //-     h3(data-bind="text:username")
-            //- button(data-bind="event:{click:()=>$root.requestPaymentTon(10)}") 💎 Пополнить Тон
-            //- button#ton-connect
-            //- #sendMe
-            //- button(data-bind="event:{click:()=>$root.requestPayment(10)}") Пополнить счет
-            //- div.mTop(data-bind="foreach:transactions")
-            //-     div.transaction(data-bind="event:{click:()=>$root.showAlert(`${date}\n\n${comment}: ⭐${amount}`)}")
-            //-         span.info(data-bind="text:comment")
-            //-         span.info.sum(data-bind="text:amount")
     .popup.reg(data-bind="hidden:active()!='lobby',attr:{shown:active()!='lobby',class:active()!='lobby'?`hidden`:`reg`}")
         div
             include header
@@ -164,16 +148,16 @@ html
     
     #footer.grid
         #lobby(data-bind="event:{click:()=>sactive('lobby')}, attr:{'data-chosen':active()=='lobby'?true:false}")
-            img(src="/images/auction/star_off.svg")
+            img.navbar(src="/images/auction/star_on.svg")
             //- span!=translations.auctions[lang]
         #wallet
-            img(src="/images/auction/wallet_off.svg")
+            img.navbar(src="/images/auction/wallet_on.svg")
             //- span пополнение
-        #refs(data-bind="event:{click:()=>sactive('refs')}")
-            img(src="/images/auction/refs_off.svg")
+        #refs(data-bind="event:{click:()=>sactive('refs')}, attr:{'data-chosen':active()=='refs'?true:false}")
+            img.navbar(src="/images/auction/refs_on.svg")
             //- span рефералы
-        #profile(data-bind="event:{click:()=>sactive('profile')}")
-            img(src="/images/auction/profile_off.svg")
+        #profile(data-bind="event:{click:()=>sactive('profile')}, attr:{'data-chosen':active()=='profile'?true:false}")
+            img.navbar(src="/images/auction/profile_on.svg")
             //- span профиль
         
                 

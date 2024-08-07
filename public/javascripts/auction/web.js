@@ -11,25 +11,44 @@ function closeLeft() {
 
 start = start.split('_')
 
-switch(start[0]){
-    case `users`:{
-        if(start[1]){
-            showUser(start[1])
-            break
+
+let datatypes = {
+    users:{
+        item: showUser,
+        list: showUsers
+    },
+    auctions:{
+        item: showAuction,
+        list: showAuctions,
+    },
+    faqs:{
+        item: showFaq,
+        list: showFaqs,
+    },
+    iterations:{
+        item: showIteration,
+        list: showAuctions,
+    },
+    requests:{
+        item: showRequest,
+        list: showRequests,
+    }    
+}
+
+if(start[0]){
+    if(datatypes[start[0]]){
+        if(start[1]) {
+            datatypes[start[0]].item(start[1])
+        } else {
+            datatypes[start[0]].list()
         }
-        showUsers()
-        break;
-    }
-    case `auctions`:{
-        if(start[1]){
-            showAuction(start[1])
-            break;
-        }
-        showAuctions()
-        break;
     }
 }
 
+
+function showRequests(){
+    showScreen(`Выплаты`,`requests`,showRequestLine)
+}
 
 function showUsers(){
     showScreen(`Пользователи`,`users`,showUserLine,false,false,false,false,false,`.sDivided`)
@@ -66,6 +85,14 @@ function showIterationLine(a){
             onclick:()=>showIteration(a.id)
         }))
     return c
+}
+
+function showRequestLine(r){
+    let c = listContainer(r,true,{type: `тип`});
+        c.append(ce(`h3`,false,false,r.amount,{
+            onclick:()=>showRequest(r.id)
+        }))
+    return c;
 }
 
 function showUserLine(u){
@@ -127,6 +154,56 @@ function addTransaction(userId,callback){
         user:       {placeholder:`id пользователя`, type:`hidden`, value: userId},
         amount:     {placeholder: `сумма`, type: `number`}
     },callback)
+}
+
+function showRequest(id){
+    let p = preparePopupWeb(`requests_${id}`,false,false,true);
+    load(`requests`,id).then(r=>{
+        if(!r.active) p.append(ce(`h1`,false,false,`Запрос уже отработан!`));
+        
+        p.append(ce(`p`,false,`info`,drawDate(r.createdAt._seconds*1000)))
+
+        p.append(ce(`h2`,false,false,   `Запрос выплаты по счету "${r.type}" от пользователя ${r.username}`))
+
+        p.append(ce(`p`,false,false,`зарезервировано на счету:`))
+        p.append(ce(`h1`,false,false,`${r.amount} TON`))
+
+        if(r.active){
+            p.append(ce(`button`,false,false,`Выплачено`,{
+                onclick:function(){
+                    let c = confirm(`Точно?`)
+                    if(c){
+                        this.setAttribute(`disabled`,true)
+                        axios
+                            .post(`/${host}/admin/requests/${id}`,{
+                                amount: 123
+                            })
+                            .then(()=>{
+                                tg.showAlert(`ok`)
+                                showRequests();
+                            })
+                    }
+                    
+                }
+            }))
+
+            p.append(ce(`button`,false,false,`Отклонить`,{
+                onclick:function(){
+                    let c = confirm(`Точно?`)
+                    if(c){
+                        this.setAttribute(`disabled`,true)
+                        axios
+                            .delete(`/${host}/admin/requests/${id}`)
+                            .then(()=>{
+                                tg.showAlert(`ok`)
+                                showRequests();
+                            })
+                    }
+                    
+                }
+            }))
+        }
+    })
 }
 
 function showFaq(id){

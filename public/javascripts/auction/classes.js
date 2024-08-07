@@ -27,6 +27,11 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 
+function shimmer(tg,light){
+    if(light) return tg.HapticFeedback.impactOccurred('light')
+    tg.HapticFeedback.notificationOccurred('success')
+}
+
 let app = initializeApp(firebaseConfig);
 let db = getDatabase(app)
 
@@ -89,7 +94,7 @@ class Faq{
 class Ref{
     constructor(r){
         this.username = ko.observable(r.username || r.id);
-        this.stakes =   ko.observable(r.stakes || 0);
+        this.totalStakesTon =   ko.observable(r.totalStakesTon || 0);
         this.score =    ko.observable(r.score);
     }
 }
@@ -111,7 +116,9 @@ class Page{
 
         this.sactive= (v)=> {
             this.active(v)
-            console.log(v)
+            
+            shimmer(tg,true);
+
             if(v == `profile`){
                 this.transactions([])
                 userLoad(`transactions`).then(transactions=>{
@@ -131,16 +138,18 @@ class Page{
         this.transactions =     ko.observableArray([])
         this.auctions =         ko.observableArray(d.auctions.map(a=>new Auction(a)))
         
-        this.totalStaked =      ko.observable(d.profile.totalStaked || 0)
-        this.stakes =           ko.observable(d.profile.stakes || 0)
+        this.totalStakedTon =      ko.observable(d.profile.totalStakedTon || 0)
+        this.totalStakesTon =           ko.observable(d.profile.totalStakesTon || 0)
         this.total =            ko.observable(d.profile.total || 0)
-
-
-        this.totalTonScore =    ko.observable(0);
+        this.totalScoreTon =    ko.observable(0);
         this.balance =          ko.observable(d.profile.score)
-        this.tonBalance =       ko.observable(d.profile.tonScore || 0)
-        // this.refs =             ko.observable(d.profile.refs || 0)
-        // this.iterations =   ko.observableArray(d.iterations.map(i=>new Iteration(i,tg,this.balance())))
+        this.curScoreTon =       ko.observable(d.profile.curScoreTon || 0)
+
+        this.totalRefScoreTon = ko.observable(d.profile.totalRefScoreTon || 0)
+        this.curRefScoreTon = ko.observable(d.profile.curRefScoreTon || 0)
+        this.totalRefStakesTon = ko.observable(d.profile.totalRefStakesTon || 0)
+
+        
         this.iterations =   ko.observableArray([])
         this.userId =       ko.observable(d.profile.id || null)
         this.username =     ko.observable(d.profile.username)
@@ -148,9 +157,8 @@ class Page{
         this.hash =         ko.observable(d.profile.hash)
         
         this.refs =         ko.observable(d.profile.refs.map(r=>new Ref(r)))
+        
 
-        this.refTonScore = ko.observable(d.profile.refTonScore || 0)
-        this.refTonStakes = ko.observable(d.profile.refTonStakes || 0)
 
         this.copyRef =()=>{
             navigator.clipboard.writeText(`${botLink}?start=ref_${this.userId()}`).then(s=>{
@@ -231,7 +239,13 @@ class Page{
                 }))
             })
         }
-
+        this.requestWithDraw = (type) => {
+            axios.post(`/${host}/api/withdraw`,{
+                type: type
+            }).then(()=>{
+                tg.showAlert(`Ok!.`)
+            }).catch(handleError)
+        }
         this.requestPayment = (amount) =>{
             axios.post(`/${host}/api/refill`,{
                 amount: +amount
@@ -241,14 +255,13 @@ class Page{
 
             }).catch(handleError)
         }
-
-
         this.stake = (i) => {
             i.active(false)
             axios
                 .post(`/${host}/api/stake/${i.id}`)
                 .then(s=>{
-                    tg.showAlert(s.data)
+                    shimmer(tg);
+                    // tg.showAlert(s.data)
                 })
                 .catch(err=>{
                     if(err.response.data.invoice){
@@ -268,17 +281,14 @@ class Page{
             if(a){
                 console.log(a);
 
-                this.balance(a.totalTonScore)
-                
-
-                this.totalStaked(a.totalStaked || 0)
-                this.stakes(a.stakes || 0)
+                this.totalStakedTon(a.totalStakedTon || 0)
+                this.totalStakesTon(a.totalStakesTon || 0)
                 this.total(a.total || 0)
-                
-                this.totalTonScore(a.totalTonScore || 0)
-                this.tonBalance(a.tonScore || 0)
-                this.refTonScore(a.refTonScore || 0)
-                this.refTonStakes(a.refTonStakes || 0)
+                this.totalScoreTon(a.totalScoreTon || 0)
+                this.curScoreTon(a.curScoreTon || 0)
+                this.curRefScoreTon(a.curRefScoreTon || 0)
+                this.totalRefScoreTon(a.totalRefScoreTon || 0)
+                this.totalRefStakesTon(a.totalRefStakesTon || 0)
             }
         })
 
