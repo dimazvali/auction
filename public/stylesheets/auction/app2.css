@@ -309,13 +309,9 @@ input,
 select {
     width: 100%;
     box-sizing: border-box;
-    line-height: 40px;
-    height: 40px;
-    margin-bottom: 20px;
     background: none;
     border: none;
-    border-bottom: 2.5px solid var(--button);
-    color: var(--tg-theme-hint-color);
+    color: white;
     font-family: 'Open sans', sans-serif;
 }
 
@@ -522,6 +518,19 @@ img.coverS {
     height: 90%;
     overflow-y: scroll;
     display: block;
+}
+
+.appear{
+    animation: appear2 .3s forwards;
+}
+@keyframes appear {
+    0% {
+        filter: opacity(0);
+    }
+
+    100% {
+        filter: opacity(1);
+    }
 }
 
 @keyframes appear {
@@ -813,6 +822,8 @@ table {
     width: 100%;
     font-size: 11px;
     text-align: center;
+    table-layout: fixed;
+    text-align: center;
 }
 
 
@@ -920,7 +931,7 @@ img.ava2 {
 }
 
 td.ton {
-    text-align: left;
+    text-align: center;
 }
 
 .box2.big {
@@ -1137,4 +1148,32 @@ p.topLess {
 
 .qr {
     width: 70px;
+}
+
+.container.grid3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    text-align: center;
+    height: 31px;
+    padding: 2px;
+    line-height: 26px;
+    border-radius: 4px;
+}
+
+.container.grid3>span {
+    color: #5E86B6;
+    padding: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.container.grid3>.active {
+    background: var(--bg2);
+    color: white;
+}
+
+button.sent::after {
+    content: url(/images/auction/sent.svg);
+    vertical-align: sub;
+    margin-left: 5px;
 }

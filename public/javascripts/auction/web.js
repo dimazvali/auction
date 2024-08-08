@@ -168,6 +168,8 @@ function showRequest(id){
         p.append(ce(`p`,false,false,`зарезервировано на счету:`))
         p.append(ce(`h1`,false,false,`${r.amount} TON`))
 
+        p.append(ce(`p`,false,false,`Кошелек: ${r.wallet}, memo: ${r.memo}.`))
+
         if(r.active){
             p.append(ce(`button`,false,false,`Выплачено`,{
                 onclick:function(){
@@ -175,9 +177,7 @@ function showRequest(id){
                     if(c){
                         this.setAttribute(`disabled`,true)
                         axios
-                            .post(`/${host}/admin/requests/${id}`,{
-                                amount: 123
-                            })
+                            .post(`/${host}/admin/requests/${id}`)
                             .then(()=>{
                                 tg.showAlert(`ok`)
                                 showRequests();

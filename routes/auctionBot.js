@@ -1474,6 +1474,9 @@ router.all(`/api/:method`, (req, res) => {
                 devlog(req.body)
     
                 switch (req.params.method) {
+                    case `requests`:{
+                        return ifBefore(requests,{active:true,user:+user.id}).then(col=>res.json(col))
+                    }
                     case `withdraw`:{
 
                         let types = {
@@ -1498,38 +1501,34 @@ router.all(`/api/:method`, (req, res) => {
                                 createdAt:          new Date(),
                                 amount:             account,
                                 ton:                true,
-                                comment:            `Зачисление с реферального счета.`
+                                comment:            `Рефералы`
                             })
 
                             res.sendStatus(200);
 
                         } else {
-                            if(!account || account < withdrawMin) return res.status(400).send(`insufficient funds`);
+                            if(!account || account < withdrawMin || +req.body.amount > account) return res.status(400).send(`insufficient funds`);
 
-                            userIncrement(user, types[req.body.type], -account)
+                            userIncrement(user, types[req.body.type], -req.body.amount)
 
-                            if(req.body.type == `score`) transactions.add({
-                                user:               +user.id,
-                                createdAt:          new Date(),
-                                amount:             -account,
-                                ton:                true,
-                                comment:            `Вывод средств`
-                            })
+                            
 
                             return requests.add({
                                 user:       +user.id,
                                 username:   uname(user,user.id),
                                 type:       req.body.type,
                                 createdAt:  new Date(),
+                                wallet:     req.body.wallet || null,
+                                memo:       req.body.memo || null,
                                 active:     true,
                                 status:     `new`,
-                                amount:     account
+                                amount:     +req.body.amount
                             }).then(rec=>{ 
 
                                 res.sendStatus(200);
 
                                 log({
-                                    text:       `${uname(user,user.id)} запрашивает вывод средств по статье ${req.body.type} в размере ${account}.`,
+                                    text:       `${uname(user,user.id)} запрашивает вывод средств по статье ${req.body.type} в размере ${+req.body.amount}.`,
                                     user:       +user.id,
                                     request:    rec.id
                                 })
@@ -1688,6 +1687,88 @@ router.all(`/admin/:method/:id`, (req, res) => {
 
         getUser(token.user, udb).then(admin => {
             switch (req.params.method) {
+
+                case `requests`:{
+
+                    let ref = requests.doc(req.params.id);
+                    return getDoc(requests,req.params.id).then(r=>{
+                        if(!r) return res.sendStatus(404);
+                        getUser(r.user,udb).then(user=>{
+                            switch(req.method){
+                                case `GET`:{
+                                    return res.json(r)
+                                }
+                                case `DELETE`:{
+
+                                    if(r.active){
+
+                                        ref.update({
+                                            active:     false,
+                                            status:     `cancelledByAdmin`,
+                                            updatedBy:  +admin.id,
+                                            updatedAt:  new Date()
+                                        })
+
+                                        log({
+                                            text:       `${uname(admin,admin.id)} отменяет выплату в пользу ${uname(user,user.id)} в размере ${r.amount}.`,
+                                            admin:      +admin.id,
+                                            request:    req.params.id
+                                        })
+
+                                        userIncrement(user, `curRefScoreTon`, +req.body.amount)
+
+                                        res.sendStatus(200)
+                                        
+                                    } else {
+                                        res.status(400).send(`Запрос уже обработан (или отклонен).`)
+                                    }
+                                    
+                                    break;
+                                }
+                                case `POST`:{
+
+                                    if(r.active){
+                                        ref.update({
+                                            active:     false,
+                                            status:     `executed`,
+                                            updatedBy:  +admin.id,
+                                            updatedAt:  new Date()
+                                        })
+    
+                                        log({
+                                            text: `${uname(admin,admin.id)} производит выплату в пользу ${uname(user,user.id)} в размере ${r.amount}.`,
+                                            admin: +admin.id,
+                                            request: req.params.id
+                                        })
+    
+                                        sendMessage2({
+                                            chat_id: user.id,
+                                            text: `Выплата в размере ${r.amount} TON произведена.`
+                                        },false,process.env.auctionToken,messages)
+    
+                                        transactions.add({
+                                            user:               +user.id,
+                                            createdAt:          new Date(),
+                                            amount:             -r.amount,
+                                            ton:                true,
+                                            comment:            `Вывод средств`
+                                        })
+                                        res.sendStatus(200)
+                                    } else {
+                                        res.status(400).send(`Запрос уже обработан (или отклонен).`)
+                                    }
+                                    
+                                    
+
+                                    
+                                    break;
+
+                                }
+                            }
+                        })
+                        
+                    })
+                }
 
                 case `logs`: {
 

@@ -99,11 +99,35 @@ class Ref{
     }
 }
 
+
+class Request{
+    constructor(r){
+        this.amount=     ko.observable(r.amount),
+        this.date=       ko.observable(drawDate(r.createdAt._seconds*1000,false,{time:true}))
+    }
+}
 class Page{
     constructor(d,tg,handleError,host,userLoad,drawDate){
         this.showAlert = (txt) => tg.showAlert(txt);
         
         this.active =           ko.observable(`lobby`);
+        this.swalletActive = (t) => {
+            
+            this.walletActive(t)
+
+            if(t == `transactions`) this.transactionsRefresh();
+            
+            if(t == `out`) {
+                userLoad(`requests`).then(reqs=>{    
+                    this.requests(reqs.map(r=>new Request(r)))
+                })
+                console.log(this.requests())
+            };
+        }
+
+        this.requests = ko.observableArray([]);
+        
+        this.walletActive = ko.observable('deposit')
 
         this.transactionsOpen = ko.observable(false);
         
@@ -113,6 +137,23 @@ class Page{
 
         this.faqs =     ko.observableArray(d.faqs.map(f=>new Faq(f)))
         this.refFaqs =  ko.observableArray(d.faqs.filter(f=>f.ref).map(f=>new Faq(f)))
+
+        this.transactionsRefresh = () =>{
+            this.transactions([])
+                userLoad(`transactions`).then(transactions=>{
+                    transactions.forEach((t,i) => {
+                        setTimeout(()=>{
+                            this.transactions.push({
+                                comment:    t.comment || 'обновление',
+                                amount:     t.amount,
+                                date:       new Date(t.createdAt._seconds*1000).toLocaleDateString()+' / '+time(new Date(t.createdAt._seconds*1000))
+                            })
+                        },i*100)
+                            
+                    });
+                    
+                })
+        }
 
         this.sactive= (v)=> {
             this.active(v)
@@ -143,6 +184,8 @@ class Page{
                 .then(data=>this.archive(data.map(i=>new IterationArchive(i,d.profile.id))))
         }
 
+        this.userwallet = ko.observable(d.profile.wallet || null)
+        this.usermemo = ko.observable(d.profile.memo || null)
 
         this.transactions =     ko.observableArray([])
         this.auctions =         ko.observableArray(d.auctions.map(a=>new Auction(a)))
@@ -168,6 +211,18 @@ class Page{
         this.refs =         ko.observable(d.profile.refs.map(r=>new Ref(r)))
         
 
+        this.copy = (txt) => {
+            navigator.clipboard.writeText(txt).then(s=>{
+                try {
+                    tg.showAlert(`copied`)    
+                } catch (error) {
+                    alert(`ссылка скопирована`)
+                }
+                
+            }).catch(err=>{
+                console.warn(err)
+            })
+        }
 
         this.copyRef =()=>{
             navigator.clipboard.writeText(`${botLink}?start=ref_${this.userId()}`).then(s=>{
@@ -255,6 +310,32 @@ class Page{
                 tg.showAlert(`Ok!.`)
             }).catch(handleError)
         }
+        
+        this.toWithDraw = ko.observable(null)
+        
+        this.withdrawalInProcess = ko.observable(false)
+
+        this.requestWithDrawTon = (type) => {
+            
+            if(!this.userwallet())                  return tg.showAlert(`Введите данные своего кошелька.`);
+            if(!this.toWithDraw())                      return tg.showAlert(`Укажите, сколько хотите вывести со счета.`);
+            if(this.toWithDraw() > this.curScoreTon())  return tg.showAlert(`Ваш счет меньше, чем сумма вывода...`);
+
+            this.withdrawalInProcess(true);
+
+            axios.post(`/${host}/api/withdraw`,{
+                type:   `score`,
+                amount: this.toWithDraw(),
+                wallet: this.userwallet(),
+                memo:   this.usermemo()
+            }).then(()=>{
+                tg.showAlert(`Ok!`)
+            }).catch(handleError)
+            .finally(this.withdrawalInProcess(false))
+        }
+
+        
+
         this.requestPayment = (amount) =>{
             axios.post(`/${host}/api/refill`,{
                 amount: +amount

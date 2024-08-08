@@ -32,6 +32,7 @@ html
     
     script!=`${start?`let start="${start}"`:'let start=null'}`
   body#b
+    - let wallet ="UQAbMidsunh9esQXj1bd7zXNS-lamkN77cdqaF-GEdJ5W9yj";
     script!=`let authNeeded=${authNeeded}`
     div(data-bind="foreach:faqs")
        .popup.hidden(data-bind="attr:{class:closed()?'hidden':'popup reg'}")
@@ -95,26 +96,24 @@ html
                         td.score.q(data-bind="text:name, event:{click:()=>toggle()}")
                     tr(data-bind="attr:{class:closed()?`hidden`:`reg`}") 
                         td(data-bind="hidden:closed(), text: description")
-
-
     .popup.hidden(data-bind="hidden:active()!='profile',attr:{shown:active()!='profile',class:active()!='profile'?`hidden`:`reg`}")
         div
             //- button.thin(onclick="showFaq(`faq`)") help
             include header
-            .modal(data-bind="attr:{class:transactionsOpen()?'modal':'hidden'}")
-                h2(data-bind="event:{click:()=>showTransactions()}") История
-                .vScroll
-                    table
-                        thead
-                            tr
-                                th Действие
-                                th Сумма
-                                th Дата
-                        tbody(data-bind="foreach:transactions")
-                            tr
-                                td(data-bind="text:comment")
-                                td.ton(data-bind="text:amount.toFixed(2)")
-                                td(data-bind="text:date")
+            //- .modal(data-bind="attr:{class:transactionsOpen()?'modal':'hidden'}")
+            //-     h2(data-bind="event:{click:()=>showTransactions()}") История
+            //-     .vScroll
+            //-         table
+            //-             thead
+            //-                 tr
+            //-                     th Действие
+            //-                     th Сумма
+            //-                     th Дата
+            //-             tbody(data-bind="foreach:transactions")
+            //-                 tr
+            //-                     td(data-bind="text:comment")
+            //-                     td.ton(data-bind="text:amount.toFixed(2)")
+            //-                     td(data-bind="text:date")
             .section
                 h3 Статистика ставок
                 .grid2
@@ -127,7 +126,7 @@ html
                 .box2.big.vector
                     p.blue.t Сумма выигрышей
                         p.ton.score(data-bind="text:totalScoreTon().toFixed(2)")
-    .popup.reg(data-bind="hidden:active()!='before',attr:{shown:active()!='before',class:active()!='before'?`hidden`:`reg`}")
+    .popup.hidden(data-bind="hidden:active()!='before',attr:{shown:active()!='before',class:active()!='before'?`hidden`:`reg`}")
         div
             h3 История
             div(data-bind="foreach:archive")
@@ -143,10 +142,10 @@ html
                         .div.flex
                             div.mRight.round.history(data-bind="event:{click:()=>showHistory()}")
                             div.round.share(data-bind="event:{click:()=>showShare()}")
-    .popup.reg(data-bind="hidden:active()!='lobby',attr:{shown:active()!='lobby',class:active()!='lobby'?`hidden`:`reg`}")
+    .popup.hidden(data-bind="hidden:active()!='lobby',attr:{shown:active()!='lobby',class:active()!='lobby'?`hidden`:`reg`}")
         div
             include lobbyHeader
-            div(data-bind="foreach:iterations")
+            div.section(data-bind="foreach:iterations")
                 .container.auction(data-bind="shown:active, attr:{'data-active':active,'data-ton':ton}")
                     .flex.s
                         div.auctionId(data-bind="text:id.slice(0,6)")
@@ -159,13 +158,63 @@ html
                         div.pool(data-bind="text: stake().toFixed(2)")
                         .countDown(data-bind="text:left")
                     button.stakeButton(data-bind=`attr:{disabled:stakeHolder()==$parent.hash()},click:$root.stake,text:stakeHolder()==$parent.hash()?"${translations.lead[lang]}":'${translations.bet[lang]} ('+base()+')'`)
-    .popup(data-bind="hidden:active()!='current',attr:{shown:active()!='current',class:active()!='current'?`hidden`:`reg`}")
-    
+    .popup.hidden(data-bind="hidden:active()!='wallet',attr:{shown:active()!='wallet',class:active()!='wallet'?`hidden`:`reg`}")
+        div
+            include header 
+            .section.container.grid3
+                span.active(data-bind="event:{click:()=>swalletActive('deposit')}, attr:{class:walletActive()=='deposit'?'active':'reg'}") Депозит
+                span(data-bind="event:{click:()=>swalletActive('out')}, attr:{class:walletActive()=='out'?'active':'reg'}") Вывод
+                span(data-bind="event:{click:()=>swalletActive('transactions')}, attr:{class:walletActive()=='transactions'?'active':'reg'}") Транзакции
+            .container(data-bind="attr:{class:walletActive()=='deposit'?'reg':'hidden'}")
+                h3 Ручное пополнение
+                p.t.small Адрес для пополнения
+                .box2.line
+                    span.pre.ws(data-bind="event:{click:()=>copy('"+wallet+"')}")!=wallet
+                    .copyButton(data-bind="event:{click:()=>copy('"+wallet+"')}")
+                p.t.small Memo
+                .box2.line
+                    span.pre.ws(data-bind="text:hash, event:{click:()=>copy(hash())}") 
+                    .copyButton(data-bind="event:{click:()=>copy(hash())}")
+            .container(data-bind="attr:{class:walletActive()=='out'?'reg':'hidden'}")
+                h3 Вывод средств
+                p.t.small Адрес вашего кошелька
+                .box2.line
+                    input.pre.ws(data-bind="value:userwallet" name="wallet")
+                p.t.small Memo
+                .box2.line
+                    input.pre.ws(data-bind="value:usermemo" name="memo")
+                p.t.small Сумма вывода
+                .box2.line
+                    input.pre.ws(data-bind="attr{placeholder:curScoreTon().toFixed(2)}, value:toWithDraw" type="number" step="0.01" min="0.5" name="withdrawal")
+                p.info.topless!=`Минимальная сумма: <span class="ton">0,5</span>.` 
+                br
+                button.sent(data-bind="attr:{disabled:withdrawalInProcess()?true:false}, event:{click:()=>requestWithDrawTon()}") Вывод
+                .section(data-bind="attr:{class:requests().length?`reg section`:`hidden`}")
+                    h3 Переводы на рассмотрении
+                    div(data-bind="foreach:requests")    
+                        div.box2.big
+                            p(data-bind="text:date")
+                            p.score.ton(data-bind="text:amount")                    
+
+            .container(data-bind="attr:{class:walletActive()=='transactions'?'reg':'hidden'}")
+                h3 История
+                .vScroll
+                    table
+                        thead
+                            tr
+                                th Действие
+                                th Сумма
+                                th Дата
+                        tbody(data-bind="foreach:transactions")
+                            tr.appear
+                                td(data-bind="text:comment")
+                                td.ton(data-bind="text:amount.toFixed(2)")
+                                td(data-bind="text:date")
     #footer.grid
         #lobby(data-bind="event:{click:()=>sactive('lobby')}, attr:{'data-chosen':active()=='lobby'?true:false}")
             img.navbar(src="/images/auction/star_on.svg")
             //- span!=translations.auctions[lang]
-        #wallet
+        #wallet(data-bind="event:{click:()=>sactive('wallet')}, attr:{'data-chosen':active()=='wallet'?true:false}")
             img.navbar(src="/images/auction/wallet_on.svg")
             //- span пополнение
         #refs(data-bind="event:{click:()=>sactive('refs')}, attr:{'data-chosen':active()=='refs'?true:false}")
