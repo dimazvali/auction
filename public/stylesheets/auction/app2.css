@@ -1,12 +1,3 @@
-:root {
-
-    --bg: #0E1728;
-    --bg2: rgba(67, 120, 255, 0.1);
-    --bg3: #4378FF1A;
-    --border: rgba(67, 120, 255, 0.1);
-    --button: #0A84FF;
-    --grey: #5E86B6;
-}
 
 /* background: #4378FF1A; */
 
@@ -967,7 +958,9 @@ p.t+p {
 }
 
 .vector {
-    background-image: url(/images/auction/gradient.png), url(/images/auction/Vector.svg);
+    background-image: 
+        var(--gradient), 
+        url(/images/auction/Vector.svg);
     background-position: 50% 100%;
     background-repeat: no-repeat;
 }
@@ -1168,8 +1161,8 @@ p.topLess {
 }
 
 .container.grid3>.active {
-    background: var(--bg2);
-    color: white;
+    background: var(--bg3);
+    color: var(--text);
 }
 
 button.sent::after {

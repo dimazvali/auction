@@ -32,6 +32,7 @@ html
     
     script!=`${start?`let start="${start}"`:'let start=null'}`
   body#b
+    link(rel='stylesheet', data-bind="attr:{href:'/stylesheets/auction/'+theme()+'.css'}")
     - let wallet ="UQAbMidsunh9esQXj1bd7zXNS-lamkN77cdqaF-GEdJ5W9yj";
     script!=`let authNeeded=${authNeeded}`
     div(data-bind="foreach:faqs")

@@ -1,0 +1,11 @@
+:root {
+
+    --bg: #0E1728;
+    --bg2: rgba(67, 120, 255, 0.1);
+    --bg3: #4378FF1A;
+    --border: rgba(67, 120, 255, 0.1);
+    --button: #0A84FF;
+    --grey: #5E86B6;
+    --text: white;
+    --gradient: url(/images/auction/gradient.png);
+}

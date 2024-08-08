@@ -108,6 +108,14 @@ class Request{
 }
 class Page{
     constructor(d,tg,handleError,host,userLoad,drawDate){
+        
+        this.theme = ko.observable(tg.colorScheme);
+        
+
+        tg.onEvent(`themeChanged`,()=>{
+            this.theme(tg.colorScheme)
+        })
+
         this.showAlert = (txt) => tg.showAlert(txt);
         
         this.active =           ko.observable(`lobby`);
