@@ -291,7 +291,8 @@ const datatypes = {
     },
     faqs:{
         col:        faqs,
-        newDoc:     faqAdd
+        newDoc:     faqAdd,
+        extras:     [`descriptionEn`]
     },
     transactions:{
         col:    transactions,

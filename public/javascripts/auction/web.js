@@ -211,10 +211,31 @@ function showFaq(id){
     let p = preparePopupWeb(`auctionsIterations_${id}`,false,false,true);
     
     load(`faqs`,id).then(f=>{
-        p.append(ce('h1', false, false, `${f.name}`))
-        p.append(ce(`p`,false,false,`${f.description}`,false,true))
-        p.append(ce(`p`,false,false,`Тайминг: ${f.timing}`))
-        p.append(ce(`p`,false,false,`Иконка: ${f.icon}`))
+        p.append(ce('h1', false, false, `${f.name}`,{
+            onclick: function () {
+                edit(`faqs`, f.id, `name`, `text`, f.name, this)
+            }
+        }))
+        p.append(ce(`p`,false,false,`${f.description}`,{
+            onclick: function () {
+                edit(`faqs`, f.id, `description`, `textarea`, f.description, this)
+            }
+        },true))
+        p.append(ce(`p`,false,false,`${f.descriptionEn}`,{
+            onclick: function () {
+                edit(`faqs`, f.id, `descriptionEn`, `textarea`, f.descriptionEn, this)
+            }
+        },true))
+        p.append(ce(`p`,false,false,`Тайминг: ${f.timing}`,{
+            onclick: function () {
+                edit(`faqs`, f.id, `timing`, `number`, f.descriptionEn, this)
+            }
+        }))
+        p.append(ce(`p`,false,false,`Иконка: ${f.icon}`,{
+            onclick: function () {
+                edit(`faqs`, f.id, `icon`, `text`, f.icon, this)
+            }
+        }))
 
         p.append(deleteButton(`faqs`,id))
     })
