@@ -8,16 +8,16 @@ const refRevenue = .1;
 const withdrawMin = 0.5;
 var QRCode =    require('qrcode')
 
-const curScoreTon =     `текущий баланс в тон`
+const curScoreTon =         `текущий баланс в тон`
 // tonScore
 
-const totalScoreTon =   `всего получили в ton`
+const totalScoreTon =       `всего получили в ton`
 // totalTonScore
 
-const totalStakedTon =  `сумма ставок в ton`
+const totalStakedTon =      `сумма ставок в ton`
 // totalStaked
 
-const totalStakesTon =  `всего ставок в ton`
+const totalStakesTon =      `всего ставок в ton`
 // stakes
 
 const curRefScoreTon =     `текущий баланс по рефералке`
@@ -26,7 +26,7 @@ const curRefScoreTon =     `текущий баланс по рефералке`
 const totalRefScoreTon =   `всего доход по рефералке`
 // refTonScoreTotal
 
-const totalRefStakesTon =      `всего ставок у рефералов в TON`
+const totalRefStakesTon =   `всего ставок у рефералов в TON`
 // refTonStakes
 
 
@@ -137,6 +137,10 @@ const {
 } = require('sitemap');
 const { database } = require('firebase-admin');
 
+const locals = require('./locals.js');
+
+// const locals = require('../public/javascripts/auction/locals.js').default
+
 
 
 // let gcp = initializeApp({
@@ -209,7 +213,7 @@ function checkIncoming(){
                             hash: p.in_msg.message
                         }).then(u=>{
                             if(u[0]){
-                                score(u[0],p.in_msg/1000000000,false,`зачисление TON`,true)
+                                score(u[0],p.in_msg/1000000000,false, userLang(locals.updates.income,u[0].language_code),true)
                             } else {
                                 alertAdmins({
                                     text: `Пришел непонятный платеж ${p.in_msg.message}`
@@ -337,112 +341,8 @@ function accessError(res,access){
         text: `Кто-то без полномочий пытается воспользоваться методом ${access}.`
     })
     
-    res.status(401).send(`Вы кто вообще?`)
+    res.status(401).send(`Who are you?..`)
 }
-
-const locals = {
-    about: {
-        ru: `FAQ`,
-        en: `FAQ`
-    },
-    bet: {
-        ru: `Сделать ставку`,
-        en: `Bet`
-    },
-    lead: {
-        ru: `Вы ведете`,
-        en: `You a winning`
-    },
-    auctions: {
-        ru: `Аукционы`,
-        en: `Auctions`
-    },
-    refill: {
-        ru: `Пополнить счет`,
-        en: `Top up`
-    },
-    toTheEnd:{
-        ru: `До конца розыгрыша: `,
-        en: `Time to end: `
-    },
-    termsAndButtons:{
-        win: {
-            ru: `Выигрыш`,
-            en: `Winning`
-        },
-        open:{
-            ru: `Открыть аукцион`,
-            en: `Open the auction`
-        },
-        stake: {
-            ru: `Ставка`,
-            en: `Bid`
-        },
-        staked:{
-            ru: `ставка сделана`,
-            en: `Bid placed`
-        },
-        priceLabel:{
-            ru: `Оплата`,
-            en: `Payment`
-        },
-        scoreUpdate:{
-            ru: `пополнение счета` ,
-            en: `top up balance`
-        }
-    },
-    errors: {
-        noSuchAuction: {
-            ru: `Такого аукциона нет`,
-            en: `There is no such auction`
-        },
-        notEnoughStars: {
-            ru: `Вам не хватает звезд!`,
-            en: `Not enough stars!`
-        }
-    },
-    users:{
-        welcome: {
-            ru: `Добро пожаловать в Аукцион, тут вы можете легко выиграть Звезды от Телеграм`,
-            en: `Welcome to the Auction, here you can easily win stars from Telegram`
-        },
-        scoreUpdated: (payment) => {
-            return {
-                ru: `Ваш счет пополнен на ${payment.total_amount} звезд.`,
-                en: `Your account has been funded with ${payment.total_amount} stars.`
-            }
-        },
-        toPayDesc:{
-            ru: `Столько не хватает для следующей ставки`,
-            en: `So much is missing for the next bid`
-        },
-        stakeHolderChanged:(i)=>{
-            return {
-                ru:  `Ваша ставка бита! Скорее! Вы еще можете выиграть ${(i.stake + Number(i.base)).toFixed(1)} звезд!`,
-                en:  `Your bid is beaten! Hurry up! You can still win ${(i.stake + Number(i.base)).toFixed(1)} stars!`
-            }
-        },
-        iterationOver:(iteration)=>{
-            return {
-                ru: `Розыгрыш аукциона ${iteration.auctionName} закончился.\nВ этот раз ваша ставка не сыграла. Попробуем снова?`,
-                en: `The ${iteration.auctionName} auction has ended. Your bid failed this time. Shall we try again?`
-            }
-        },
-        congrats: (iteration)=> {
-            return {
-                ru: `Поздравляем! Вы выиграли ${iteration.stake.toFixed(1)} звезд!`,
-                en: `Congratulations! You have won ${iteration.stake.toFixed(1)} stars!`,
-            }
-        }
-    },
-    accountCharged:(a)=>{
-        return {
-            ru: `Ура! Ваш баланс пополнен на ${a} звезд. Удачной игры!`,
-            en: `Yay! Your balance has been replenished with ${a} stars. Good luck!`
-        }
-    }
-}
-
 
 
 function stopIteration(iteration,user){
@@ -1359,12 +1259,12 @@ router.post(`/hook`, (req, res) => {
                 if (req.body.message.text == `/test`) {
                     return sendMessage2({
                         chat_id:    u.id,
-                        text:       `Приложение с теста`,
+                        text:       `devmode app`,
                         reply_markup:{
                             inline_keyboard:[[{
                                 text: `${ngrok}`,
                                 web_app:{
-                                    url: `${ngrok}/${host}/app2` 
+                                    url: `${ngrok}/${host}/app2?lang=en` 
                                 }
                             }]]
                         }
@@ -1502,7 +1402,7 @@ router.all(`/api/:method`, (req, res) => {
                                 createdAt:          new Date(),
                                 amount:             account,
                                 ton:                true,
-                                comment:            `Рефералы`
+                                comment:            `refs`
                             })
 
                             res.sendStatus(200);
@@ -1668,7 +1568,7 @@ router.get(`/app2`,(req,res)=>{
     res.render(`${host}/app2`,{
         start:          req.query.startapp,
         translations:   locals,
-        lang:           `ru`,
+        lang:           req.query.lang || `en`,
         botLink:        botLink
     })
 })
@@ -1744,7 +1644,7 @@ router.all(`/admin/:method/:id`, (req, res) => {
     
                                         sendMessage2({
                                             chat_id: user.id,
-                                            text: `Выплата в размере ${r.amount} TON произведена.`
+                                            text: locals.updates.withdrawsuccess(r.amount)[user.language_code] || locals.updates.withdrawsuccess(r.amount).en
                                         },false,process.env.auctionToken,messages)
     
                                         transactions.add({
@@ -1752,7 +1652,7 @@ router.all(`/admin/:method/:id`, (req, res) => {
                                             createdAt:          new Date(),
                                             amount:             -r.amount,
                                             ton:                true,
-                                            comment:            `Вывод средств`
+                                            comment:            locals.transactionTypes.withdrawal
                                         })
                                         res.sendStatus(200)
                                     } else {

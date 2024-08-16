@@ -26,6 +26,9 @@ import {
     onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+import {
+    locals
+} from "/javascripts/auction/locals.js"
 
 function shimmer(tg,light){
     if(light) return tg.HapticFeedback.impactOccurred('light')
@@ -48,7 +51,7 @@ function helper(type){
                     sub.append(ce(`p`,false,`info`,p))
                 })
 
-                sub.append(ce(`button`,false,`thin`,`скрыть`,{
+                sub.append(ce(`button`,false,`thin`,locals.termsAndButtons.hide[lang],{
                     onclick:()=>m.remove()
                 }))
                 
@@ -103,7 +106,7 @@ class Ref{
 class Request{
     constructor(r){
         this.amount=     ko.observable(r.amount),
-        this.date=       ko.observable(drawDate(r.createdAt._seconds*1000,false,{time:true}))
+        this.date=       ko.observable(drawDate(r.createdAt._seconds*1000,lang,{time:true}))
     }
 }
 class Page{
@@ -152,7 +155,7 @@ class Page{
                     transactions.forEach((t,i) => {
                         setTimeout(()=>{
                             this.transactions.push({
-                                comment:    t.comment || 'обновление',
+                                comment:    locals.transactionTypes[t.comment] ? locals.transactionTypes[t.comment][lang] : t.comment || 'update',
                                 amount:     t.amount,
                                 date:       new Date(t.createdAt._seconds*1000).toLocaleDateString()+' / '+time(new Date(t.createdAt._seconds*1000))
                             })
@@ -173,7 +176,8 @@ class Page{
                 userLoad(`transactions`).then(transactions=>{
                     transactions.forEach(t => {
                         this.transactions.push({
-                            comment:    t.comment || 'обновление',
+                            // comment:    t.comment || 'обновление',
+                            comment:    locals.transactionTypes[t.comment] ? locals.transactionTypes[t.comment][lang] : t.comment || 'update',
                             amount:     t.amount,
                             date:       new Date(t.createdAt._seconds*1000).toLocaleDateString()+' / '+time(new Date(t.createdAt._seconds*1000))
                         })    
@@ -222,9 +226,9 @@ class Page{
         this.copy = (txt) => {
             navigator.clipboard.writeText(txt).then(s=>{
                 try {
-                    tg.showAlert(`copied`)    
+                    tg.showAlert(locals.updates.copied[lang])
                 } catch (error) {
-                    alert(`ссылка скопирована`)
+                    alert(error.message)
                 }
                 
             }).catch(err=>{
@@ -235,9 +239,9 @@ class Page{
         this.copyRef =()=>{
             navigator.clipboard.writeText(`${botLink}?start=ref_${this.userId()}`).then(s=>{
                 try {
-                    tg.showAlert(`Ссылка скопирована`)    
+                    tg.showAlert(locals.updates.copied[lang])
                 } catch (error) {
-                    alert(`ссылка скопирована`)
+                    alert(error.message)
                 }
                 
             }).catch(err=>{
@@ -325,9 +329,9 @@ class Page{
 
         this.requestWithDrawTon = (type) => {
             
-            if(!this.userwallet())                  return tg.showAlert(`Введите данные своего кошелька.`);
-            if(!this.toWithDraw())                      return tg.showAlert(`Укажите, сколько хотите вывести со счета.`);
-            if(this.toWithDraw() > this.curScoreTon())  return tg.showAlert(`Ваш счет меньше, чем сумма вывода...`);
+            if(!this.userwallet())                      return tg.showAlert(locals.errors.yourWallerData[lang]);
+            if(!this.toWithDraw())                      return tg.showAlert(locals.errors.amountMissing[lang]);
+            if(this.toWithDraw() > this.curScoreTon())  return tg.showAlert(locals.errors.notEnoughBalance[lang]);
 
             this.withdrawalInProcess(true);
 
@@ -363,7 +367,6 @@ class Page{
                 })
                 .catch(err=>{
                     if(err.response.data.invoice){
-                        console.log(`УДАЛИТЬ инвойс`)
                         tg.showAlert(err.response.data.comment)
                         tg.openInvoice(err.response.data.invoice)
                     } else {
@@ -374,7 +377,6 @@ class Page{
         }
 
         onValue(ref(db,`auction/users/${d.profile.hash}`),a=>{
-            console.log(`обновился юзер`)
             a = a.val();
             if(a){
                 console.log(a);
@@ -518,7 +520,7 @@ function history(log){
                     sub.append(ce(`p`,false,`info`,{}))
                 })
 
-                sub.append(ce(`button`,false,`thin`,`скрыть`,{
+                sub.append(ce(`button`,false,`thin`,locals.termsAndButtons.hide[lang],{
                     onclick:()=>m.remove()
                 }))
                 
@@ -538,7 +540,7 @@ function showIterationHistory(id,base){
     
         axios.get(`/auction/api/iterationStakes/${id}`).then(col=>{
             let m = ce(`div`,false,[`modal`,`reg`])
-            m.append(ce(`h2`,false,false,`История`,{
+            m.append(ce(`h2`,false,false,locals.headers.history[lang],{
                 onclick:()=>m.remove()
             }))
             let sub = ce(`div`,false, `vScroll`)
@@ -547,24 +549,19 @@ function showIterationHistory(id,base){
                 let h = ce(`tr`)
                     t.append(h)
                     h.append(ce(`th`,false,false,`ID`))
-                    h.append(ce(`th`,false,false,`Дата`))
-                    h.append(ce(`th`,false,false,`Время`))
-                    h.append(ce(`th`,false,false,`Ставка`))
+                    h.append(ce(`th`,false,false,locals.headers.date[lang]))
+                    h.append(ce(`th`,false,false,locals.headers.time[lang]))
+                    h.append(ce(`th`,false,false,locals.headers.stake[lang]))
                 col.data.forEach(r=>{
                     let row = ce(`tr`)
-                        row.append(ce(`td`, false, false, r.you ? `Вы` : r.user));
-                        row.append(ce(`td`, false, false, drawDate(r.createdAt._seconds*1000)));
+                        row.append(ce(`td`, false, false, r.you ? locals.you[lang] : r.user));
+                        row.append(ce(`td`, false, false, drawDate(r.createdAt._seconds*1000,lang)));
                         row.append(ce(`td`, false, false, time(new Date(r.createdAt._seconds*1000))));
                         row.append(ce(`td`, false, `ton`, base));
                     t.append(row);
-                    
-
-                    // sub.append(ce(`p`,false,false,`${drawDate(r.createdAt._seconds*1000,false,{time:true})}`))
-                    // sub.append(ce(`p`,false,`info`, r.you? `Вы делаете ставку ${a.base}.` : `Юзер ${r.user} делает ставку ${a.base}.`))
-                    // sub.append(ce(`p`,false,`info`,r.you? `Вы лидируете на аукционе` : `Юзер ${r.user} лидирует на аукционе.`))
                 })
 
-                sub.append(ce(`button`,false,`thin`,`скрыть`,{
+                sub.append(ce(`button`,false,`thin`,locals.termsAndButtons.hide[lang],{
                     onclick:()=>m.remove()
                 }))
                 
@@ -591,33 +588,33 @@ class IterationArchive{
                 onclick:()=>c.remove()
             })
                 let h = ce(`div`,false,[`flexSpread`,`borderBottom`])
-                    h.append(ce(`span`,false,`info`,`Дата`))
+                    h.append(ce(`span`,false,`info`,locals.headers.date[lang]))
                     h.append(ce(`span`,false,`info`,this.date))
                 c.append(h);
                 let details = ce(`div`,false,`flexSpread`)
                 
                 let id = ce(`div`)
-                    id.append(ce(`p`,false,`info`,`ID Аукциона`))
+                    id.append(ce(`p`,false,`info`,`ID`))
                     id.append(ce(`p`,false,`topLess`,this.id.slice(0,6)))
                 details.append(id)
 
                 let t = ce(`div`)
-                    t.append(ce(`p`,false,`info`,`Длительность`))
+                    t.append(ce(`p`,false,`info`,locals.headers.length[lang]))
                     t.append(ce(`p`,false,'topLess',time2(+new Date(i.timer._seconds*1000)-new Date(i.createdAt._seconds*1000))))
                 details.append(t)
 
                 let w = ce(`div`)
-                    w.append(ce(`p`,false,[`info`,`winner`],`Победитель`))
+                    w.append(ce(`p`,false,[`info`,`winner`],locals.headers.winner[lang]))
                     w.append(ce(`p`,false,'topLess',i.stakeHolderId || '—'))
                 details.append(w)
             c.append(details)
 
             c.append(ce(`div`,false,[`xl`,`ton`],i.base.toFixed(2)))
-            c.append(ce(`span`,false,`info`,`Сумма выигрыша`))
+            c.append(ce(`span`,false,`info`,locals.headers.earnedSum[lang]))
             let f = ce(`div`,false,`flexSpread`)
                 let l = ce(`div`)
-                    l.append(ce(`p`,false,`t`,`Ваша реферальная ссылка`))
-                    l.append(ce(`span`,false,`info`,`Поделитесь реферальной ссылкой с друзьями через QR-код`))
+                    l.append(ce(`p`,false,`t`,locals.headers.refLink[lang]))
+                    l.append(ce(`span`,false,`info`,locals.termsAndButtons.shareLink[lang]))
                 f.append(l)
                 let r = ce(`img`,false,[`block`,`qr`],false,{
                     src: `/auction/qr?user=${userId}`
@@ -646,41 +643,6 @@ class Iteration{
         
         this.showHistory = ()=>{
             showIterationHistory(a.id,a.base)
-            // axios.get(`/auction/api/iterationStakes/${a.id}`).then(col=>{
-            //     let m = ce(`div`,false,[`modal`,(tg.colorScheme=='dark'?`reg`:`light`)])
-            //     m.append(ce(`h2`,false,false,`История`,{
-            //         onclick:()=>m.remove()
-            //     }))
-            //     let sub = ce(`div`,false, `vScroll`)
-            //         let t = ce(`table`);
-            //         sub.append(t);
-            //         let h = ce(`tr`)
-            //             t.append(h)
-            //             h.append(ce(`th`,false,false,`ID`))
-            //             h.append(ce(`th`,false,false,`Дата`))
-            //             h.append(ce(`th`,false,false,`Время`))
-            //             h.append(ce(`th`,false,false,`Ставка`))
-            //         col.data.forEach(r=>{
-            //             let row = ce(`tr`)
-            //                 row.append(ce(`td`, false, false, r.you ? `Вы` : r.user));
-            //                 row.append(ce(`td`, false, false, drawDate(r.createdAt._seconds*1000)));
-            //                 row.append(ce(`td`, false, false, time(new Date(r.createdAt._seconds*1000))));
-            //                 row.append(ce(`td`, false, `ton`, a.base));
-            //             t.append(row);
-                        
-
-            //             // sub.append(ce(`p`,false,false,`${drawDate(r.createdAt._seconds*1000,false,{time:true})}`))
-            //             // sub.append(ce(`p`,false,`info`, r.you? `Вы делаете ставку ${a.base}.` : `Юзер ${r.user} делает ставку ${a.base}.`))
-            //             // sub.append(ce(`p`,false,`info`,r.you? `Вы лидируете на аукционе` : `Юзер ${r.user} лидирует на аукционе.`))
-            //         })
-
-            //         sub.append(ce(`button`,false,`thin`,`скрыть`,{
-            //             onclick:()=>m.remove()
-            //         }))
-                    
-            //     m.append(sub)
-            //     document.body.append(m)
-            // })
         }
 
         this.ava =          ko.observable(null);
@@ -698,13 +660,7 @@ class Iteration{
         },1000)  
 
         onValue(ref(db,`auction/iterations/${a.id}`),a=>{
-            
-            console.log(`обновилась итерация аукциона ${this.name()}`)
-            
             a = a.val();
-            
-            console.log(a)
-            
             if(a){
                 if(a.users && a.users[hash]) this.userActive(true)
                 this.name(a.auctionName)
@@ -730,13 +686,11 @@ class Auction{
         this.base =     ko.observable(a.base)
         
         onValue(ref(db,`auction/auction/${a.id}`),a=>{
-            console.log(`обновился аукцион ${this.name()}`)
             a = a.val();
             if(a){
                 this.name(a.name)
                 this.active(a.active)
             }
-            
         })
     }
     
