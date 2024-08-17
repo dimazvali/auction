@@ -19,6 +19,8 @@ function showLoad(){
 
 
 
+
+
 function preparePopup(type) {
     tg.BackButton.show();
     tg.onEvent('backButtonClicked', clearPopUp)
@@ -121,10 +123,6 @@ function userLoad(collection, id, extra) {
         .then(data => {
             return data.data
         })
-        // .catch(err=>{
-        //     console.log(err)
-        //     return new Error()
-        // })
 }
 
 let user;

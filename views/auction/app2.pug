@@ -13,6 +13,7 @@ html
     link(rel="preconnect", href="https://fonts.gstatic.com")
     link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap")
 
+    script(src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js") 
     script (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(98071436, "init", {clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true}); 
     
     script(src='/javascripts/knockout.js')
@@ -149,6 +150,14 @@ html
     .popup.hidden(data-bind="hidden:active()!='wallet',attr:{shown:active()!='wallet',class:active()!='wallet'?`hidden`:`reg`}")
         div
             include header 
+            .section
+                #ton-connect
+                .section.container.grid3
+                    span.ton.active(data-bind="click:()=>setRefill(0.5), attr:{class:refill()==0.5?'active':'reg'}") 0.5
+                    span.ton(data-bind="click:()=>setRefill(5), attr:{class:refill()==5?'active':'reg'}") 5
+                    span.ton(data-bind="click:()=>setRefill(10), attr:{class:refill()==10?'active':'reg'}") 10
+                button(data-bind="event:{click:()=>sendMoney()}") transfer
+
             .section.container.grid3
                 span.active(data-bind="event:{click:()=>swalletActive('deposit')}, attr:{class:walletActive()=='deposit'?'active':'reg'}")!=translations.headers.deposit[lang]
                 span(data-bind="event:{click:()=>swalletActive('out')}, attr:{class:walletActive()=='out'?'active':'reg'}")!=translations.headers.withdraw[lang]

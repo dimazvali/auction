@@ -63,11 +63,11 @@ const locals = {
             ru: `Вывод средств`
         },
         address:{
-            en: `Withdrawal address`,
+            en: `Wallet address`,
             ru: `Адрес для пополнения`
         },
         manual:{
-            en: `Manual withdrawal`,
+            en: `Manual refill`,
             ru: `Ручное пополнение`
         },
         transactions:{

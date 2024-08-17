@@ -39,6 +39,9 @@ let app = initializeApp(firebaseConfig);
 let db = getDatabase(app)
 
 
+
+
+
 function helper(type){
     let c = ce(`div`,false,`containerHelp`,`?`,{
         onclick:()=>{
@@ -114,6 +117,37 @@ class Page{
         
         this.theme = ko.observable(tg.colorScheme);
         
+        this.tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://stars-auction-bot-0823eb8d3f85.herokuapp.com/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+        
+        this.tonConnectUI.uiOptions = {
+            twaReturnUrl: 'https://t.me/starsAuctionBot/app'
+        };
+
+        this.refill = ko.observable(0.5);
+        this.setRefill = (v) => this.refill(v);
+
+
+        this.sendMoney = async () => {
+            const transaction = {
+                messages: [
+                    {
+                        payload: d.profile.tonPayload,
+                        address: wallet, // destination address
+                        amount: this.refill()*1_000_000_000 //Toncoin in nanotons
+                    }
+                ]
+            }
+            try {
+                const result = await this.tonConnectUI.sendTransaction(transaction)
+            } catch(err){
+                tg.showAlert(err.message)
+            }
+            
+        }
+
 
         tg.onEvent(`themeChanged`,()=>{
             this.theme(tg.colorScheme)

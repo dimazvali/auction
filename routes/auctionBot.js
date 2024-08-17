@@ -178,6 +178,8 @@ let gcp = initializeApp({
     databaseURL: "https://dimazvalimisc-default-rtdb.europe-west1.firebasedatabase.app"
 }, host);
 
+
+
 let fb =    getFirestore(gcp);
 let s =     getStorage(gcp)
 let rtb =   getDatabase(gcp)
@@ -194,10 +196,9 @@ setTimeout(function () {
 
 
 if(!process.env.develop){
-    // setInterval(() => {
-    //     checkIncoming()
-    // }, 3000);
-    
+    setInterval(() => {
+        checkIncoming()
+    }, 3000);   
 }
 
 let processedPayments = {};
@@ -296,7 +297,7 @@ const datatypes = {
     faqs:{
         col:        faqs,
         newDoc:     faqAdd,
-        extras:     [`descriptionEn`]
+        extras:     [`nameEn` , `descriptionEn`]
     },
     transactions:{
         col:    transactions,
@@ -404,7 +405,6 @@ function stopIteration(iteration,user){
 
 function mask(id){
     id = id.toString();
-    // return id.replace(/...../,'*****') 
     return `***${id.slice(id.length-4,id.length)}`
 }
 
