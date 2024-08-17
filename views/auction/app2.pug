@@ -177,7 +177,7 @@ html
                 p.t.small!=translations.headers.yourWallet[lang]
                 .box2.line
                     input.pre.ws(data-bind="value:userwallet" name="wallet")
-                p.t.small Memo
+                p.t.small Memo (if needed)
                 .box2.line
                     input.pre.ws(data-bind="value:usermemo" name="memo")
                 p.t.small!=translations.headers.wSum[lang]
@@ -210,16 +210,16 @@ html
     #footer.grid
         #lobby(data-bind="event:{click:()=>sactive('lobby')}, attr:{'data-chosen':active()=='lobby'?true:false}")
             img.navbar(src="/images/auction/star_on.svg")
-            //- span!=translations.auctions[lang]
+            span!=translations.auctions[lang]
         #wallet(data-bind="event:{click:()=>sactive('wallet')}, attr:{'data-chosen':active()=='wallet'?true:false}")
             img.navbar(src="/images/auction/wallet_on.svg")
-            //- span пополнение
+            span!=translations.r[lang]
         #refs(data-bind="event:{click:()=>sactive('refs')}, attr:{'data-chosen':active()=='refs'?true:false}")
             img.navbar(src="/images/auction/refs_on.svg")
-            //- span рефералы
+            span!=translations.refs[lang]
         #profile(data-bind="event:{click:()=>sactive('profile')}, attr:{'data-chosen':active()=='profile'?true:false}")
             img.navbar(src="/images/auction/profile_on.svg")
-            //- span профиль
+            span!=translations.prof[lang]
         
                 
   script(type="module" src='/javascripts/auction/app2.js')

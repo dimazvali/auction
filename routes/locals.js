@@ -19,6 +19,18 @@ const locals = {
         ru: `Аукционы`,
         en: `Auctions`
     },
+    r:{
+        ru: `Пополнение`,
+        en: `Accout`
+    },
+    refs:{
+        ru: `Рефералы`,
+        en: `Refs`
+    },
+    prof:{
+        ru: `Профиль`,
+        en: `Profile`
+    },
     refill: {
         ru: `Пополнить счет`,
         en: `Top up`

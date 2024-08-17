@@ -726,8 +726,9 @@ button+button {
 .round+.round{
     margin-left: 10px;
 }
+
 .history {
-    background: url(/images/auction/History.svg) 50% no-repeat, #4378FF1A;
+    background: url(/images/auction/history.svg) 50% no-repeat, #4378FF1A;
 }
 
 .share {
@@ -783,6 +784,7 @@ button+button {
 
 .grid>div {
     text-align: center;
+    position: relative;
 }
 
 button[disabled] {
@@ -1081,6 +1083,7 @@ button.fr {
 img.navbar {
     filter: brightness(0.6);
     transition: .2s;
+    margin: 10px auto;
 }
 
 [data-chosen]>img.navbar {
@@ -1173,4 +1176,14 @@ button.sent::after {
 
 .go3572451881 {
     width: 100% !important;
+}
+
+.grid>div>span {
+    position: absolute;
+    font-size: small;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    color: var(--grey);
 }

@@ -4,6 +4,7 @@ const host = `auction`
 let mcb, mbbc, curLecture, curTicket, curAlert = null;
 
 window.Telegram.WebApp.disableVerticalSwipes()
+window.Telegram.WebApp.expand()
 
 
 function showLoad(){
