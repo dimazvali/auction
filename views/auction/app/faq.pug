@@ -1,0 +1,10 @@
+.popup.hidden(data-bind="hidden:active()!='faq',attr:{class:active()!='faq'?'hidden':'reg'}")
+    div
+        include header
+        .section
+            h3 FAQ
+            .grid2(data-bind="foreach:faqs")
+                .box2.big(data-bind="event:{click:()=>toggle()}")
+                    img.ico(data-bind="attr:{src:icon}")
+                    p.tag.timing(data-bind="text:timing")
+                    p.score(data-bind="text:name")

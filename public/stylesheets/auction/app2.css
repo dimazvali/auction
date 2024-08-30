@@ -1180,7 +1180,7 @@ button.sent::after {
 
 .grid>div>span {
     position: absolute;
-    font-size: small;
+    font-size: xx-small;
     margin: 0 auto;
     left: 0;
     right: 0;

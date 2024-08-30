@@ -1,0 +1,16 @@
+.popup.hidden(data-bind="hidden:active()!='lobby',attr:{shown:active()!='lobby',class:active()!='lobby'?`hidden`:`reg`}")
+    div
+        include lobbyHeader
+        div.section(data-bind="foreach:iterations")
+            .container.auction(data-bind="shown:active, attr:{'data-active':active,'data-ton':ton}")
+                .flex.s
+                    div.auctionId(data-bind="text:id.slice(0,6)")
+                    .flex.topCenterLine
+                        div.star(data-bind="attr:{'data-on':userActive()}")
+                        div.crown(data-bind="attr:{'data-on':(stakeHolder() == $root.hash())}")
+                    div.round.history(data-bind="event:{click:()=>showHistory()}")
+                .flex.s
+                    .winner(data-bind="text:stakeHolder() == $root.hash()? '"+translations.you[lang]+"' : (stakeHolderId()||'—')")
+                    div.pool(data-bind="text: stake().toFixed(2)")
+                    .countDown(data-bind="text:left")
+                button.stakeButton(data-bind=`attr:{disabled:stakeHolder()==$parent.hash()},click:$root.stake,text:stakeHolder()==$parent.hash()?"${translations.lead[lang]}":'${translations.bet[lang]} ('+base()+' TON)'`)

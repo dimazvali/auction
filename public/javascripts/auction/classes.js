@@ -116,6 +116,14 @@ class Page{
     constructor(d,tg,handleError,host,userLoad,drawDate){
         
         this.theme = ko.observable(tg.colorScheme);
+
+        this.lang = (lang) => {
+            axios.put(`/${host}/api/lang`,{
+                lang: lang
+            }).then(()=>{
+                window.location.search = `?lang=${lang}`
+            })
+        }
         
         this.tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://stars-auction-bot-0823eb8d3f85.herokuapp.com/tonconnect-manifest.json',

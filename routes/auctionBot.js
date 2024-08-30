@@ -6,6 +6,7 @@ const defaultIterationLength = 30;
 const casinoRevenue = .15;
 const refRevenue = .1;
 const withdrawMin = 0.5;
+const languages = [`en`,`ru`];
 var QRCode =    require('qrcode')
 
 const curScoreTon =         `текущий баланс в тон`
@@ -1375,6 +1376,24 @@ router.all(`/api/:method`, (req, res) => {
                 devlog(req.body)
     
                 switch (req.params.method) {
+                    case `lang`:{
+                        devlog(req.body.lang)
+                        if(languages.indexOf(req.body.lang)>-1){
+                            sendMessage2({
+                                chat_id: user.id,
+                                menu_button:{
+                                    "type": "web_app",
+                                    "text": `App`,
+                                    "web_app": {
+                                        "url": "https://stars-auction-bot-0823eb8d3f85.herokuapp.com/auction/app2?lang="+req.body.lang
+                                    }
+                                }
+                            },`setChatMenuButton`,process.env.auctionToken)
+                            return res.sendStatus(200)
+                        } else {
+                            return res.sendStatus(404)
+                        }
+                    }
                     case `requests`:{
                         return ifBefore(requests,{active:true,user:+user.id}).then(col=>res.json(col))
                     }
@@ -1565,7 +1584,7 @@ router.get(`/app`,(req,res)=>{
 })
 
 router.get(`/app2`,(req,res)=>{
-    res.render(`${host}/app2`,{
+    res.render(`${host}/app/app2`,{
         start:          req.query.startapp,
         translations:   locals,
         lang:           req.query.lang || `en`,

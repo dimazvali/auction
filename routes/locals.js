@@ -21,7 +21,7 @@ const locals = {
     },
     r:{
         ru: `Пополнение`,
-        en: `Accout`
+        en: `Deposit`
     },
     refs:{
         ru: `Рефералы`,

@@ -1,0 +1,42 @@
+.popup.hidden(data-bind="hidden:active()!='refs',attr:{shown:active()!='profile',class:active()!='refs'?`hidden`:`reg`}")
+    div
+        include header
+        .section
+            h3!=translations.headers.refLink[lang]
+            .box2.line
+                span.ws(data-bind="text:`${botLink}?start=ref_${userId()}`, event:{click:()=>copyRef()}") 
+                .copyButton(data-bind="event:{click:()=>copyRef()}")
+            .grid2
+                .box2.big
+                    p.t!=translations.headers.refs[lang]
+                    p.score(data-bind="text:refs().length")
+                .box2.big
+                    p.t=translations.headers.refsBets[lang]
+                    p.score(data-bind="text:totalRefStakesTon")
+            .box2.big
+                p.t=translations.headers.earned[lang]
+                p.ton.score(data-bind="text:totalRefScoreTon().toFixed(2)")
+            .box2.big.vector
+                p.blue.t=translations.headers.accessible[lang]
+                p.ton.score(data-bind="text:curRefScoreTon().toFixed(2)")
+                button.fr(data-bind="attr:{disabled:curRefScoreTon()?false:true},event:{click:()=>requestWithDraw('ref')}")=translations.termsAndButtons.get[lang]
+        .section
+            h3=translations.headers.yourRefs[lang]
+            table
+                thead
+                    tr
+                        th=translations.headers.ref[lang]
+                        th=translations.headers.stakes[lang]
+                        th=translations.headers.income[lang]
+                tbody(data-bind="foreach:refs")
+                    tr
+                        td(data-bind="text:'@'+username()")
+                        td(data-bind="text:totalStakesTon")
+                        td.ton(data-bind="text:score().toFixed(2)")
+        .section
+            h3=translations.about[lang]
+            table.ref(data-bind="foreach:refFaqs")
+                tr(data-bind="attr:{class:closed()?`down`:`up`}")
+                    td.score.q(data-bind="text:name, event:{click:()=>toggle()}")
+                tr(data-bind="attr:{class:closed()?`hidden`:`reg`}") 
+                    td(data-bind="hidden:closed(), text: description")

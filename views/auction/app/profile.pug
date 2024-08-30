@@ -1,0 +1,19 @@
+.popup.hidden(data-bind="hidden:active()!='profile',attr:{shown:active()!='profile',class:active()!='profile'?`hidden`:`reg`}")
+    div
+        include header
+        .section.container.grid3
+                span lang:
+                span(class!=lang==`ru`?`active`:false data-bind="event:{click:()=>lang('ru')}") ru
+                span(class!=lang==`en`?`active`:false data-bind="event:{click:()=>lang('en')}") en
+        .section
+            h3!=translations.headers.stats[lang]
+            .grid2
+                .box2.big
+                    p.t!=translations.headers.totalStaked[lang]
+                    p.ton.score(data-bind="text:totalStakedTon().toFixed(2)")
+                .box2.big
+                    p.t!=translations.headers.totalStakes[lang]
+                    p.score(data-bind="text:totalStakesTon")
+            .box2.big.vector
+                p.blue.t!=translations.headers.totalEarned[lang]
+                    p.ton.score(data-bind="text:totalScoreTon().toFixed(2)")

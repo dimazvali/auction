@@ -1,0 +1,16 @@
+.popup.hidden(data-bind="hidden:active()!='before',attr:{shown:active()!='before',class:active()!='before'?`hidden`:`reg`}")
+        div
+            h3!=translations.headers.history[lang]
+            div(data-bind="foreach:archive")
+                div.box2.big
+                    .flexSpread
+                        .div
+                            p.info(data-bind="text:date")
+                            p.small(data-bind="text:id.slice(0,6)")
+                            .flex
+                                span.small.tag.winner(data-bind="text:stakeHolder() == $root.hash()? '"+translations.you[lang]+"' : (stakeHolderId()||'—')")
+                                span.small.tag.ton(data-bind="text:stake().toFixed(2)")
+                                span.small.tag(data-bind="text:time")
+                        .div.flex
+                            div.mRight.round.history(data-bind="event:{click:()=>showHistory()}")
+                            div.round.share(data-bind="event:{click:()=>showShare()}")

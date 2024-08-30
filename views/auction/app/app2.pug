@@ -1,0 +1,60 @@
+
+doctype html
+html
+  head
+    title auction
+    script(src='https://telegram.org/js/telegram-web-app.js')
+
+    meta(name='viewport' content='width=device-width, initial-scale=1.0,user-scalable=no')
+    meta(name='description' content='Bet you!')
+
+    link(rel='stylesheet', href='/stylesheets/auction/app2.css')
+    link(rel="preconnect", href="https://fonts.googleapis.com")
+    link(rel="preconnect", href="https://fonts.gstatic.com")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap")
+
+    script(src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js") 
+    script (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(98071436, "init", {clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true}); 
+    
+    script(src='/javascripts/knockout.js')
+    script(type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js")
+    script(type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js")
+    script(type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js")
+    script(type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js")
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.js')
+    
+    script!=`let botLink="${botLink}"`
+    script!=`let translations=${JSON.stringify(translations)}`
+    script!=`let lang="${lang}"`
+    script!=`intention=${start ? `"${start}"` : false }`
+    
+    script(src='/javascripts/common.js')
+    script(src='/javascripts/appCommon.js')
+    script(type="module" src='/javascripts/auction/classes.js')
+    
+    script!=`${start?`let start="${start}"`:'let start=null'}`
+  body#b
+    noscript 
+        div 
+            img(src="https://mc.yandex.ru/watch/98071436" style="position:absolute; left:-9999px;")
+    link(rel='stylesheet', data-bind="attr:{href:'/stylesheets/auction/'+theme()+'.css'}")
+    - let wallet ="UQAbMidsunh9esQXj1bd7zXNS-lamkN77cdqaF-GEdJ5W9yj";
+    script!=`let authNeeded=${authNeeded}`
+    div(data-bind="foreach:faqs")
+       .popup.hidden(data-bind="attr:{class:closed()?'hidden':'popup reg'}")
+            div
+                .section
+                    img.ico.big(data-bind="attr:{src:icon}")
+                    h3(data-bind="text:name")
+                    div.small(data-bind="text:description")
+                    button.thin(data-bind="event:{click:()=>toggle()}")!=translations.termsAndButtons.close[lang]
+    include faq
+    include refs
+    include profile
+    include before
+    include lobby
+    include wallet
+    include appFooter
+        
+                
+  script(type="module" src='/javascripts/auction/app2.js')
