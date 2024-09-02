@@ -220,7 +220,7 @@ const locals = {
         },
         yourWallerData: {
             ru: `Введите данные своего кошелька.`,
-            en: `Enter your waller data`
+            en: `Enter your wallet data`
         },
         noSuchAuction: {
             ru: `Такого аукциона нет`,

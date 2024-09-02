@@ -1187,3 +1187,8 @@ button.sent::after {
     bottom: -4px;
     color: var(--grey);
 }
+
+button.bb {
+    width: fit-content;
+    font-weight: 700;
+}

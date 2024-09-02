@@ -112,6 +112,13 @@ class Request{
         this.date=       ko.observable(drawDate(r.createdAt._seconds*1000,lang,{time:true}))
     }
 }
+
+
+function back2Lobby(){
+    this.sactive(`lobby`)
+    tg.BackButton.hide();
+    tg.BackButton.offClick(back2Lobby)
+}
 class Page{
     constructor(d,tg,handleError,host,userLoad,drawDate){
         
@@ -185,6 +192,7 @@ class Page{
         this.transactionsOpen = ko.observable(false);
         
         this.showTransactions=()=>{
+            console.log(1)
             this.transactionsOpen(!this.transactionsOpen())
         }
 
@@ -209,23 +217,43 @@ class Page{
         }
 
         this.sactive= (v)=> {
+            
             this.active(v)
             
             shimmer(tg,true);
 
-            if(v == `profile`){
-                this.transactions([])
-                userLoad(`transactions`).then(transactions=>{
-                    transactions.forEach(t => {
-                        this.transactions.push({
-                            // comment:    t.comment || 'обновление',
-                            comment:    locals.transactionTypes[t.comment] ? locals.transactionTypes[t.comment][lang] : t.comment || 'update',
-                            amount:     t.amount,
-                            date:       new Date(t.createdAt._seconds*1000).toLocaleDateString()+' / '+time(new Date(t.createdAt._seconds*1000))
-                        })    
-                    });
-                    
-                })
+            switch(v){
+                case `profile`:{
+                    this.transactions([])
+                    userLoad(`transactions`).then(transactions=>{
+                        transactions.forEach(t => {
+                            this.transactions.push({
+                                // comment:    t.comment || 'обновление',
+                                comment:    locals.transactionTypes[t.comment] ? locals.transactionTypes[t.comment][lang] : t.comment || 'update',
+                                amount:     t.amount,
+                                date:       new Date(t.createdAt._seconds*1000).toLocaleDateString()+' / '+time(new Date(t.createdAt._seconds*1000))
+                            })    
+                        });
+                        
+                    })
+                    break;
+                }
+                case `before`:{
+                    tg.BackButton.show();
+                    tg.onEvent('backButtonClicked', ()=>{
+                        this.sactive(`lobby`)
+                        tg.BackButton.hide();
+                        tg.BackButton.offClick(this)
+                    })
+                }
+                case `faq`:{
+                    tg.BackButton.show();
+                    tg.onEvent('backButtonClicked', ()=>{
+                        this.sactive(`lobby`)
+                        tg.BackButton.hide();
+                        tg.BackButton.offClick(this)
+                    })
+                }
             }
         }
 
@@ -278,7 +306,7 @@ class Page{
             })
         }
 
-        this.copyRef =()=>{
+        this.copyRef = () =>{
             navigator.clipboard.writeText(`${botLink}?start=ref_${this.userId()}`).then(s=>{
                 try {
                     tg.showAlert(locals.updates.copied[lang])

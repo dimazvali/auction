@@ -7,6 +7,8 @@
                 span.ton.active(data-bind="click:()=>setRefill(0.5), attr:{class:refill()==0.5?'active':'reg'}") 0.5
                 span.ton(data-bind="click:()=>setRefill(5), attr:{class:refill()==5?'active':'reg'}") 5
                 span.ton(data-bind="click:()=>setRefill(10), attr:{class:refill()==10?'active':'reg'}") 10
+            .box2.line.mBottom
+                input(data-bind="value:refill" type="number" placeholder="min 0.5 TON" min="0.5" step="0.1")
             button(data-bind="event:{click:()=>sendMoney()}") Deposit
 
         .section.container.grid3
