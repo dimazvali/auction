@@ -298,19 +298,31 @@ const datatypes = {
     faqs:{
         col:        faqs,
         newDoc:     faqAdd,
-        extras:     [`nameEn` , `descriptionEn`]
+        extras:     [`nameEn` , `descriptionEn`],
+        callback:   ()=>{
+            console.log(`удаление faq`)
+        }
     },
     transactions:{
         col:    transactions,
         newDoc: transactionsAdd,
+        callback:   ()=>{
+            console.log(`удаление transactions`)
+        }
     },
     auctions:{
         newDoc: auctionsAdd,
-        col:    auctions
+        col:    auctions,
+        callback:   ()=>{
+            console.log(`удаление auctions`)
+        }
     },
     auctionsBets:{
         newDoc: auctionsBetsAdd,
-        col:    auctionsBets
+        col:    auctionsBets,
+        callback:   ()=>{
+            console.log(`удаление auctionsBets`)
+        }
     },
     auctionsIterations:{
         newDoc:     auctionsIterationsAdd,
@@ -319,7 +331,10 @@ const datatypes = {
     },
     messages:{
         newDoc: sendMessage,
-        col:    messages
+        col:    messages,
+        callback:   ()=>{
+            console.log(`удаление messages`)
+        }
     },
     users:{
         col: udb
