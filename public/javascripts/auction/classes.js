@@ -8,7 +8,8 @@ const firebaseConfig = {
     appId:              "1:1033227630983:web:804a29311cb28a93e93b22"
 };
 
-let wallet ="UQAbMidsunh9esQXj1bd7zXNS-lamkN77cdqaF-GEdJ5W9yj";
+// let wallet ="UQAbMidsunh9esQXj1bd7zXNS-lamkN77cdqaF-GEdJ5W9yj";
+let wallet ="UQDPk82PTUD6Id1h6kI7wUOonLLzy8dy9gg5topazCejF8lS";
 let wallet2="0:1b32276cba787d7ac4178f56ddef35cd4be95a9a437bedc76a685f8611d2795b"
 
 import {
@@ -84,9 +85,10 @@ window.addEventListener('ton-connect-ui-connection-completed', (event) => {
 
 class Faq{
     constructor(f){
+        this.id =          f.id;
         this.name =         f.name;
         this.icon =         ko.observable(f.icon || `/images/auction/faq.svg`)
-        this.description =  f.description;
+        this.description =  ko.observable(f.description);
         this.timing =       f.timing || 1;
         this.ref =          f.ref || false;
         this.closed =       ko.observable(true)
@@ -99,9 +101,9 @@ class Faq{
 
 class Ref{
     constructor(r){
-        this.username = ko.observable(r.username || r.id);
+        this.username =         ko.observable(r.username || r.id);
         this.totalStakesTon =   ko.observable(r.totalStakesTon || 0);
-        this.score =    ko.observable(r.score);
+        this.score =            ko.observable(r.score);
     }
 }
 
@@ -144,6 +146,11 @@ class Page{
         this.refill = ko.observable(0.5);
         this.setRefill = (v) => this.refill(v);
 
+        this.showRefFaq = () => {
+            console.log(this.faqs())
+            console.log(this.faqs().filter(f=>f.id == `zcBzZ5t1qjtijS4UZX7N`))
+            this.faqs().filter(f=>f.id == `zcBzZ5t1qjtijS4UZX7N`)[0].closed(false)
+        }
 
         this.sendMoney = async () => {
             const transaction = {
@@ -249,9 +256,14 @@ class Page{
                 case `faq`:{
                     tg.BackButton.show();
                     tg.onEvent('backButtonClicked', ()=>{
-                        this.sactive(`lobby`)
-                        tg.BackButton.hide();
-                        tg.BackButton.offClick(this)
+                        console.log(this.faqs())
+                        if(this.faqs().filter(f=>!f.closed()).length){
+                            this.faqs().forEach(f=>f.closed(true))
+                        } else {
+                            this.sactive(`lobby`)
+                            tg.BackButton.hide();
+                            tg.BackButton.offClick(this)    
+                        }
                     })
                 }
             }

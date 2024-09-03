@@ -302,7 +302,7 @@ select {
     box-sizing: border-box;
     background: none;
     border: none;
-    color: white;
+    color: var(--grey);
     font-family: 'Open sans', sans-serif;
 }
 
@@ -1059,6 +1059,7 @@ p.timing::after {
 
 .small {
     font-size: small;
+    white-space: break-spaces;
 }
 
 img.ico.big {

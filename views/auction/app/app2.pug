@@ -38,7 +38,7 @@ html
         div 
             img(src="https://mc.yandex.ru/watch/98071436" style="position:absolute; left:-9999px;")
     link(rel='stylesheet', data-bind="attr:{href:'/stylesheets/auction/'+theme()+'.css'}")
-    - let wallet ="UQAbMidsunh9esQXj1bd7zXNS-lamkN77cdqaF-GEdJ5W9yj";
+    - let wallet ="UQDPk82PTUD6Id1h6kI7wUOonLLzy8dy9gg5topazCejF8lS";
     script!=`let authNeeded=${authNeeded}`
     div(data-bind="foreach:faqs")
        .popup.hidden(data-bind="attr:{class:closed()?'hidden':'popup reg'}")
@@ -46,7 +46,7 @@ html
                 .section
                     img.ico.big(data-bind="attr:{src:icon}")
                     h3(data-bind="text:name")
-                    div.small(data-bind="html:description")
+                    p.small(data-bind="text:description().replace(/\\/r/g,'<br>')")
                     button.thin(data-bind="event:{click:()=>toggle()}")!=translations.termsAndButtons.close[lang]
     include faq
     include refs
