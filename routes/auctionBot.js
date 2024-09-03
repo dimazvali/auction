@@ -3,9 +3,9 @@ const ngrok = process.env.ngrok;
 const host = `auction`
 const token = process.env.auctionToken;
 const defaultIterationLength = 30;
-const casinoRevenue = .15;
-const refRevenue = .1;
-const withdrawMin = 0.5;
+const casinoRevenue =   .15;
+const refRevenue =      .1;
+const withdrawMin =     0.5;
 const languages = [`en`,`ru`];
 var QRCode =    require('qrcode')
 
@@ -1804,74 +1804,79 @@ function updateEntity(req, res, ref, admin) {
 
 
 function deleteEntity(req, res, ref, admin, attr, callback) {
+    try {
+        return ref.get().then(e => {
 
-    return ref.get().then(e => {
-
-        let data = handleDoc(e)
-
-        if (req.params.method == `messages`) {
-
-            mess = data;
-
-            if (mess.deleted) return res.status(400).send(`уже удалено`);
-            if (!mess.messageId) return res.status(400).send(`нет id сообщения`);
-
-            sendMessage2({
-                chat_id: mess.user,
-                message_id: mess.messageId
-            }, `deleteMessage`, token).then(resp => {
-                if (resp.ok) {
-                    res.json({
-                        success: true,
-                        comment: `Сообщение удалено.`
-                    })
-                    ref.update({
-                        deleted: new Date(),
-                        deletedBy: +admin.id
-                    })
-                } else {
-                    res.sendStatus(500)
-                }
-            })
-        } else {
-            if (!data[attr || 'active']) return res.json({
-                success: false,
-                comment: `Вы опоздали. Запись уже удалена.`
-            })
-
-
-            ref.update({
-                [attr || 'active']: false,
-                updatedBy: +admin.id
-            }).then(s => {
-
-                log({
-                    [req.params.data]: req.params.id,
-                    admin: +admin.id,
-                    text: `${uname(admin,admin.id)} архивирует ${req.params.method} ${e.name || e.id}.`
+            let data = handleDoc(e)
+    
+            if (req.params.method == `messages`) {
+    
+                mess = data;
+    
+                if (mess.deleted) return res.status(400).send(`уже удалено`);
+                if (!mess.messageId) return res.status(400).send(`нет id сообщения`);
+    
+                sendMessage2({
+                    chat_id: mess.user,
+                    message_id: mess.messageId
+                }, `deleteMessage`, token).then(resp => {
+                    if (resp.ok) {
+                        res.json({
+                            success: true,
+                            comment: `Сообщение удалено.`
+                        })
+                        ref.update({
+                            deleted: new Date(),
+                            deletedBy: +admin.id
+                        })
+                    } else {
+                        res.sendStatus(500)
+                    }
                 })
-
-                res.json({
-                    success: true
-                })
-
-                if (typeof (callback) == 'function') {
-                    console.log(`Запускаем коллбэк`)
-                    callback()
-                }
-            }).catch(err => {
-
-                console.log(err)
-
-                res.json({
+            } else {
+                if (!data[attr || 'active']) return res.json({
                     success: false,
-                    comment: err.message
+                    comment: `Вы опоздали. Запись уже удалена.`
                 })
-            })
-        }
-
-
-    })
+    
+    
+                ref.update({
+                    [attr || 'active']: false,
+                    updatedBy: +admin.id
+                }).then(s => {
+    
+                    log({
+                        [req.params.data]: req.params.id,
+                        admin: +admin.id,
+                        text: `${uname(admin,admin.id)} архивирует ${req.params.method} ${e.name || e.id}.`
+                    })
+    
+                    res.json({
+                        success: true
+                    })
+    
+                    if (typeof (callback) == 'function') {
+                        console.log(`Запускаем коллбэк`)
+                        callback()
+                    }
+                }).catch(err => {
+    
+                    console.log(err)
+    
+                    res.json({
+                        success: false,
+                        comment: err.message
+                    })
+                })
+            }
+    
+    
+        })    
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send(err.message)
+    }
+    
 }
 
 router.get(`/web`, (req, res) => {
