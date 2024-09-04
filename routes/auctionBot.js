@@ -1536,7 +1536,7 @@ router.all(`/api/:method`, (req, res) => {
 
 router.all(`/admin/:method`, (req, res) => {
 
-    let token = req.signedCookies.adminToken || req.signedCookies.userToken || process.env.develop == `true`? process.env.adminToken : false;
+    let token = req.signedCookies.adminToken || req.signedCookies.userToken || (process.env.develop == `true`? process.env.adminToken : false);
 
     if (!token) return accessError(res, `${req.method} ${req.params.method}`)
 
@@ -1609,7 +1609,7 @@ router.get(`/app2`,(req,res)=>{
 
 router.all(`/admin/:method/:id`, (req, res) => {
     
-    let token = req.signedCookies.adminToken || req.signedCookies.userToken || process.env.develop == `true`? process.env.adminToken : false;
+    let token = req.signedCookies.adminToken || (process.env.develop == `true`? process.env.adminToken : false);
 
     if (!token) return accessError(res,`${req.method} ${req.params.id}.`)
 
@@ -1752,6 +1752,13 @@ router.all(`/admin/:method/:id`, (req, res) => {
     })
 })
 
+function isNumeric(str) {
+    if (typeof str != "string") return false // we only process strings!  
+    return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+           !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+  }
+  
+
 function updateEntity(req, res, ref, admin) {
     ref.get().then(d => {
 
@@ -1785,7 +1792,7 @@ function updateEntity(req, res, ref, admin) {
             })
         } else {
             ref.update({
-                [req.body.attr]: (req.body.type == `date` ? new Date(req.body.value) : req.body.value) || null,
+                [req.body.attr]: (req.body.type == `date` ? new Date(req.body.value) : (isNumeric(req.body.value)? +req.body.value : req.body.value )) || null,
                 updatedAt: new Date(),
                 updatedBy: admin ? +admin.id : null,
             }).then(s => {
@@ -1900,7 +1907,7 @@ router.get(`/web`, (req, res) => {
 
     if (!process.env.develop && !req.signedCookies.adminToken) return res.redirect(`${process.env.ngrok}/${host}/auth`)
 
-    getDoc(adminTokens, (req.signedCookies.adminToken || process.env.adminToken)).then(t => {
+    getDoc(adminTokens, (req.signedCookies.adminToken)).then(t => {
 
         if (!t || !t.active) {
             devlog(`нет такого токена`)

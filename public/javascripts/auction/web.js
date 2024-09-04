@@ -237,7 +237,7 @@ function showFaq(id){
             }
         }))
 
-        p.append(deleteButton(`faqs`,id))
+        p.append(deleteButton(`faqs`,id, !f.active))
     })
 }
 
@@ -250,7 +250,7 @@ function showIteration(id){
         p.append(ce(`p`,false,false,`Пул: ${i.stake}`))
         p.append(ce(`p`,false,false,`Лидер: ${i.stakeHolder}`))
 
-        p.append(deleteButton(`auctionsIterations`,id))
+        p.append(deleteButton(`auctionsIterations`,id, !i.active))
     })
 }
 
@@ -294,16 +294,18 @@ function showAuction(id){
             }
         })
 
-        let iterationsContainer = ce(`div`)
-        
-        p.append(iterationsContainer);
+        p.append(deleteButton(`auctions`,id,!a.active))
 
-        load(`auctionsIterations`,false,{auction: id}).then(iterations=>{
-            iterations.forEach(i=>{
-                iterationsContainer.append(showIterationLine(i))
-            })
-            if(!iterations.length) iterationsContainer.append(ce(`p`,false,false,`Еще не запускали`))
-        })
+        // let iterationsContainer = ce(`div`)
+        
+        // p.append(iterationsContainer);
+
+        // load(`auctionsIterations`,false,{auction: id}).then(iterations=>{
+        //     iterations.forEach(i=>{
+        //         iterationsContainer.append(showIterationLine(i))
+        //     })
+        //     if(!iterations.length) iterationsContainer.append(ce(`p`,false,false,`Еще не запускали`))
+        // })
 
     })
 }
