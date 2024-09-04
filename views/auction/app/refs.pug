@@ -2,10 +2,10 @@
     div
         include headerRefs
         .section
-            h3!=translations.headers.refLink[lang]
+            h3!=translations.headers.refLink[lang]+'🔗'
             .box2.line
                 span.ws(data-bind="text:`${botLink}?start=ref_${userId()}`, event:{click:()=>copyRef()}") 
-                .copyButton(data-bind="event:{click:()=>copyRef()}")
+                .copyButton(data-bind="event:{click:()=>share()}")
             .grid2
                 .box2.big
                     p.t!=translations.headers.refs[lang]
@@ -21,7 +21,7 @@
                 p.ton.score(data-bind="text:curRefScoreTon().toFixed(2)")
                 button.fr(data-bind="attr:{disabled:curRefScoreTon()?false:true},event:{click:()=>requestWithDraw('ref')}")=translations.termsAndButtons.get[lang]
         .section
-            h3=translations.headers.yourRefs[lang]
+            h3=translations.headers.yourRefs[lang]+'👥'
             table
                 thead
                     tr
@@ -34,7 +34,7 @@
                         td(data-bind="text:totalStakesTon")
                         td.ton(data-bind="text:score().toFixed(2)")
         .section
-            h3=translations.about[lang]
+            h3=translations.about[lang]+'🤔'
             table.ref(data-bind="foreach:refFaqs")
                 tr(data-bind="attr:{class:closed()?`down`:`up`}")
                     td.score.q(data-bind="text:name, event:{click:()=>toggle()}")

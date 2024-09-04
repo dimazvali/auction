@@ -1,6 +1,6 @@
 .popup.hidden(data-bind="hidden:active()!='before',attr:{shown:active()!='before',class:active()!='before'?`hidden`:`reg`}")
         div
-            h3!=translations.headers.history[lang]
+            h3!=translations.headers.history[lang]+'📅'
             div(data-bind="foreach:archive")
                 div.box2.big
                     .flexSpread

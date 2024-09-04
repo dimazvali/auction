@@ -124,6 +124,10 @@ function back2Lobby(){
 class Page{
     constructor(d,tg,handleError,host,userLoad,drawDate){
         
+        this.share = () => {
+            tg.switchInlineQuery(`me`,[`users`])
+        }
+
         this.theme = ko.observable(tg.colorScheme);
 
         this.lang = (lang) => {

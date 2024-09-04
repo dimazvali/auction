@@ -9,6 +9,9 @@ const withdrawMin =     0.5;
 const languages = [`en`,`ru`];
 var QRCode =    require('qrcode')
 
+const topMonthRef = 78;
+// топовый доход по рефералке в месяц. используется в инлайн-инвайтах
+
 const curScoreTon =         `текущий баланс в тон`
 // tonScore
 
@@ -1213,7 +1216,7 @@ router.post(`/auth`, (req, res) => {
     authTG(req, res, token, adminTokens, udb, registerUser)
 })
 
-router.post(`/hook`, (req, res) => {
+router.post(`/hook`, async (req, res) => {
     res.sendStatus(200)
 
     devlog(JSON.stringify(req.body, null, 2))
@@ -1367,6 +1370,32 @@ router.post(`/hook`, (req, res) => {
         }).catch(err=>{
             console.log(err)
         })
+    }
+
+    if(req.body.inline_query){
+        
+        let q = req.body.inline_query;
+
+        let u = await getUser(q.from.id,udb);
+
+        if(u){
+            sendMessage2({
+                cache_time:         0,
+                inline_query_id:    q.id,
+                results: [{
+                    type:           `article`,
+                    id:             `invite_${u.id}`,
+                    title:          `Пригласить товарища`,
+                    description:    u.totalRefScoreTon ? `Ваши рефералы уже принесли вам ${u.totalRefScoreTon.toFixed(2)} TON!` : `топовый доход по реферальной программе в этом месяце: ${topMonthRef} TON.`,
+                    input_message_content: {
+                        parse_mode:     `HTML`,
+                        message_text:   `Эй, посмотри! Тут какие-то изи мани! Всего за пару монет можно сорвать неплохой банк, я попробовал, попробуй и ты!\n${botLink}?start=ref_${u.id}`,
+                    }
+                }]
+            },`answerInlineQuery`,token)
+        }
+
+        
     }
 })
 

@@ -9,7 +9,7 @@
                 span.ton(data-bind="click:()=>setRefill(10), attr:{class:refill()==10?'active':'reg'}") 10
             .box2.line.mBottom
                 input(data-bind="value:refill" type="number" placeholder="min 0.5 TON" min="0.5" step="0.1")
-            button(data-bind="event:{click:()=>sendMoney()}") Deposit
+            button(data-bind="event:{click:()=>sendMoney()}") Deposit 💰
 
         .section.container.grid3
             span.active(data-bind="event:{click:()=>swalletActive('deposit')}, attr:{class:walletActive()=='deposit'?'active':'reg'}")!=translations.headers.deposit[lang]
@@ -17,11 +17,11 @@
             span(data-bind="event:{click:()=>swalletActive('transactions')}, attr:{class:walletActive()=='transactions'?'active':'reg'}")!=translations.headers.transactions[lang]
         .container(data-bind="attr:{class:walletActive()=='deposit'?'reg':'hidden'}")
             h3!=translations.headers.manual[lang]
-            p.t.small!=translations.headers.address[lang]
+            p.t.small!=translations.headers.address[lang]+'🔗'
             .box2.line
                 span.pre.ws(data-bind="event:{click:()=>copy('"+wallet+"')}")!=wallet
                 .copyButton(data-bind="event:{click:()=>copy('"+wallet+"')}")
-            p.t.small Memo
+            p.t.small Memo+'📌'
             .box2.line
                 span.pre.ws(data-bind="text:hash, event:{click:()=>copy(hash())}") 
                 .copyButton(data-bind="event:{click:()=>copy(hash())}")
