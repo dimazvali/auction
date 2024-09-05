@@ -128,8 +128,8 @@ function addFaq(){
 function addAuction(){
     addScreen(`auctions`,`Новый аукцион`,{
         name:       {placeholder:   `название`},
-        ton:        {placeholder:   `TON`,              type: `boolean`, bool: true},
-        base:       {placeholder:   `ставка`,           type: `number`},
+        ton:        {placeholder:   `TON`,              type: `boolean`,    bool: true},
+        base:       {placeholder:   `ставка`,           type: `number`,     step: 'any'},
         start:      {placeholder:   `стартовый пул`,    type: `number`},
     })
 }

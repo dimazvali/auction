@@ -260,8 +260,8 @@ const locals = {
         },
         stakeHolderChanged:(i)=>{
             return {
-                ru:  `Ваша ставка бита! Скорее! Вы еще можете выиграть ${(i.stake + Number(i.base)).toFixed(1)} звезд!`,
-                en:  `Your bid is beaten! Hurry up! You can still win ${(i.stake + Number(i.base)).toFixed(1)} stars!`
+                ru:  `Ваша ставка бита! Скорее! Вы еще можете выиграть ${(i.stake + Number(i.base)).toFixed(1)} TON!`,
+                en:  `Your bid is beaten! Hurry up! You can still win ${(i.stake + Number(i.base)).toFixed(1)} TON!`
             }
         },
         iterationOver:(iteration)=>{

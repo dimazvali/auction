@@ -21,7 +21,7 @@
             .box2.line
                 span.pre.ws(data-bind="event:{click:()=>copy('"+wallet+"')}")!=wallet
                 .copyButton(data-bind="event:{click:()=>copy('"+wallet+"')}")
-            p.t.small Memo+'📌'
+            p.t.small!=Memo+'📌'
             .box2.line
                 span.pre.ws(data-bind="text:hash, event:{click:()=>copy(hash())}") 
                 .copyButton(data-bind="event:{click:()=>copy(hash())}")
