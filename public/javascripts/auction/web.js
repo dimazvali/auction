@@ -32,7 +32,11 @@ let datatypes = {
     requests:{
         item: showRequest,
         list: showRequests,
-    }    
+    },
+    stories:{
+        item: showStory,
+        list: showStories,
+    }
 }
 
 if(start[0]){
@@ -63,6 +67,11 @@ function showAuctions(){
     showScreen(`Аукционы`,`auctions`,showAuctionLine,addAuction,false,true)
 }
 
+function showStories(){
+    showScreen(`Stories`,`stories`,showStoryLine,addStory)
+}
+
+
 function showIterations(){
     showScreen(`Розыгрыши`,`auctionsIterations`,showIterationLine,false,false,true)
 }
@@ -86,6 +95,16 @@ function showIterationLine(a){
         }))
     return c
 }
+
+function showStoryLine(s){
+    let c = listContainer(s,true,{lang: `язык`});
+        c.append(ce(`h3`,false,false,s.name,{
+            onclick:()=>showStory(s.id)
+        }))
+    return c;
+}
+
+
 
 function showRequestLine(r){
     let c = listContainer(r,true,{type: `тип`});
@@ -114,12 +133,21 @@ function showFaqLine(f){
 }
 
 
+function addStory(){
+    addScreen(`stories`,`Новая сторька`,{
+        name:           {placeholder:   `название`},
+        description:    {placeholder:   `текст`,            tag: `textarea`},
+        pic:            {placeholder:   `ссылка на картинку`},
+        lang:           {placeholder:   `Язык`,             selector: `lang`}
+    })
+}
+
 
 
 function addFaq(){
     addScreen(`faqs`,`Новый ФАК`,{
         name:           {placeholder:   `название`},
-        description:    {placeholder: `текст`, tag: `textarea`},
+        description:    {placeholder:   `текст`,        tag: `textarea`},
         timing:         {placeholder:   `время`,        type: `number`},
         icon:           {placeholder:   `иконка`}
     })

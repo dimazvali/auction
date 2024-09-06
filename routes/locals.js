@@ -180,6 +180,10 @@ const locals = {
         },
     },
     termsAndButtons:{
+        next:{
+            en: `Next`,
+            ru: `Далее`
+        },
         shareLink:{
             en: `Share the link via QR-code`,
             ru: `Поделитесь реферальной ссылкой с друзьями через QR-код`

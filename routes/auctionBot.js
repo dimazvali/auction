@@ -263,9 +263,10 @@ let tonPayments =               fb.collection(`${host}tonPayments`);
 let refStakes =                 fb.collection(`${host}refStakes`)
 let faqs =                      fb.collection(`${host}Faqs`);
 let requests =                  fb.collection(`${host}Requests`);
+let stories =                   fb.collection(`${host}Stories`);
+let storiesViews =              fb.collection(`${host}StoriesViews`);
 
 let iterations = {}
-
 
 if(!process.env.develop) ifBefore(auctionsIterations).then(col=>{
     col.forEach(i=>{
@@ -296,7 +297,14 @@ if(!process.env.develop) ifBefore(auctionsIterations).then(col=>{
 
 const datatypes = {
     requests:{
-        col: requests
+        col:        requests
+    },
+    stories:{
+        col:        stories,
+        newDoc:     storiesAdd,
+        callback:()=>{
+            console.log(`удаление stories`)
+        }
     },
     faqs:{
         col:        faqs,
@@ -479,8 +487,23 @@ router.all(`/api/:method/:id`,(req,res)=>{
         getUser(token.user, udb).then(user => {
 
             if (!user) return res.sendStatus(403)
-                
+            
+                devlog(req.params.method);
+
                 switch(req.params.method){
+
+                    case `storiesViews`:{
+                        return storiesViews.add({
+                            story:      req.params.id,
+                            user:       +user.id,
+                            createdAt:  new Date()
+                        }).then(()=>{
+                            res.sendStatus(200)
+                        }).catch(err=>{
+                            console.log(err)
+                        })
+                    }
+
                     case `iterationStakes`:{
                         return ifBefore(auctionsBets,{auctionsIteration:req.params.id}).then(col=>{
                             res.json(col.map(s=>{
@@ -944,6 +967,37 @@ function recievePayment(user, payment){
         },false,token,messages)
 
     })
+}
+
+function storiesAdd(req,res,admin){
+    if(consistencyCheck({
+        name:           `Название`,
+        description:    `Текст`,
+        pic:            `Картинка`,
+        lang:           `Язык`
+    },req,res)){
+        stories.add({
+            active:         true,
+            createdAt:      new Date(),
+            createdBy:      +admin.id,
+            name:           req.body.name,
+            description:    req.body.description,
+            lang:           req.body.lang,
+            pic:            req.body.pic
+        }).then(rec=>{
+            
+            log({
+                text:       `${uname(admin,admin.id)} создает новую сторис «${req.body.name}»`,
+                admin:      +admin.id,
+                stories:    rec.id
+            })
+
+            res.redirect(`/${host}/web?page=stories_${rec.id}`)
+
+        }).catch(err=>{
+            res.status(500).send(err.message)
+        })
+    }
 }
 
 function faqAdd(req,res,admin){
@@ -1555,6 +1609,24 @@ router.all(`/api/:method`, (req, res) => {
                         return ifBefore(auctionsIterations).then(data=>res.json(data))
                     }
 
+                    case `stories`:{
+                        return ifBefore(stories,{
+                            active: true,
+                            lang: languages.indexOf(user.language_code) > -1 ? user.language_code : `en` 
+                        }).then(d=>{
+
+                            ifBefore(storiesViews,{user: +user.id}).then(col=>{
+                                res.json(d.sort((a,b)=>a.createdAt._seconds-b.createdAt._seconds).map(s=>{
+                                    let t = s;
+                                    t.shown = col.filter(v=>v.story == s.id)[0] ? true : false;
+                                    return t;
+                                }))
+                            })
+
+
+                        })
+                    }
+
                     default:{
                         res.sendStatus(404)
                     }
@@ -1582,6 +1654,18 @@ router.all(`/admin/:method`, (req, res) => {
             devlog(req.body)
 
             switch (req.params.method) {
+
+                case `lang`:{
+                    return res.json([{
+                        name:   `русский`,
+                        id:     `ru`,
+                        active: true
+                    },{
+                        name:   `английский`,
+                        id:     `en`,
+                        active: true
+                    }])
+                }
 
                 case `userSearch`: {
                     if (!req.query.name) return res.sendStatus(400)
@@ -1936,7 +2020,7 @@ router.get(`/web`, (req, res) => {
 
     if (!process.env.develop && !req.signedCookies.adminToken) return res.redirect(`${process.env.ngrok}/${host}/auth`)
 
-    getDoc(adminTokens, (req.signedCookies.adminToken)).then(t => {
+    getDoc(adminTokens, (req.signedCookies.adminToken || process.env.adminToken)).then(t => {
 
         if (!t || !t.active) {
             devlog(`нет такого токена`)

@@ -1193,3 +1193,52 @@ button.bb {
     width: fit-content;
     font-weight: 700;
 }
+
+img.storyLine {
+    width: 20vw;
+}
+
+.scroll {
+    display: flex;
+}
+
+.scroll>img {
+    margin-right: 10px;
+}
+
+.scrollContainer {
+    overflow-x: auto;
+    width: calc(100% + 20px);
+}
+
+.story {
+    text-align: center;
+    margin-top: 40px;
+}.story>p {
+    color: var(--grey);
+}
+
+button.closeStory {
+    position: fixed;
+    bottom: 10px;
+    left: 20px;
+    width: calc(100% - 40px);
+}
+
+.storyCover:before {
+    content: url(/images/auction/storiesShadow.png);
+    position: absolute;
+    left: 0px;
+    z-index: -1;
+    top: 50%;
+    transform: translate(20px, -50%);
+}
+
+.storyCover:after {
+    content: url(/images/auction/storiesShadow.png);
+    position: absolute;
+    right: 0px;
+    z-index: -1;
+    top: 50%;
+    transform: translate(-20px, -50%);
+}

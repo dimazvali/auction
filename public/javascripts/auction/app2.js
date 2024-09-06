@@ -151,6 +151,8 @@ Promise
         data.push(userLoad(`auctionsIterations`))
         data.push(userLoad(`profile`))
         data.push(userLoad(`faqs`))
+        data.push(userLoad(`stories`))
+        // data.push(userLoad(`storiesSeen`))
         
         Promise.all(data).then(data=>{
             
@@ -161,6 +163,7 @@ Promise
                 iterations: data[1],
                 profile:    data[2],
                 faqs:       data[3],
+                stories:    data[4]
             },tg,handleError,host,userLoad,drawDate)
             
             ko.applyBindings(pageData,document.querySelector(`#b`))

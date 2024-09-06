@@ -8,6 +8,8 @@ const firebaseConfig = {
     appId:              "1:1033227630983:web:804a29311cb28a93e93b22"
 };
 
+const host = `auction`
+
 // let wallet ="UQAbMidsunh9esQXj1bd7zXNS-lamkN77cdqaF-GEdJ5W9yj";
 let wallet ="UQDPk82PTUD6Id1h6kI7wUOonLLzy8dy9gg5topazCejF8lS";
 let wallet2="0:1b32276cba787d7ac4178f56ddef35cd4be95a9a437bedc76a685f8611d2795b"
@@ -29,7 +31,7 @@ import {
 
 import {
     locals
-} from "/javascripts/auction/locals.js"
+} from "/javascripts/auction/locals.js";
 
 function shimmer(tg,light){
     if(light) return tg.HapticFeedback.impactOccurred('light')
@@ -87,7 +89,7 @@ class Faq{
     constructor(f){
         this.id =          f.id;
         this.name =         f.name;
-        this.icon =         ko.observable(f.icon || `/images/auction/faq.svg`)
+        this.icon =         ko.observable(f.icon || `/images/${host}/faq.svg`)
         this.description =  ko.observable(f.description);
         this.timing =       f.timing || 1;
         this.ref =          f.ref || false;
@@ -115,6 +117,69 @@ class Request{
     }
 }
 
+class Story{
+    constructor(s){
+        this.name =         s.name;
+        this.description =  s.description;
+        this.pic =          s.pic;
+        this.shown =        ko.observable(s.shown || null);
+        this.showMe = () =>{
+            
+            console.log(`показываем сторис ${s.id}`);
+
+            showStory([s]);
+
+            
+            this.shown(true);
+        }
+    }
+}
+
+
+function showStory(arr){
+    if(document.querySelector(`#popup`)) document.querySelector(`#popup`).remove();
+    
+    let popup = ce('div', false, 'popup')
+            
+    document.body.append(popup)
+    let p = ce('div',false,`story`)
+    
+    popup.append(p)
+
+    let i = 0;
+
+    let s = arr[0]
+
+    p.append(ce(`h3`,false,false,s.name));
+    p.append(ce(`p`,false,false,s.description));
+    
+    let sc = ce(`div`,false,`storyCover`)
+
+    sc.append(ce(`img`,false,false,false,{
+        src: s.pic
+    }));
+
+    p.append(sc)
+    
+    axios.post(`/${host}/api/storiesViews/${s.id}`)
+
+    if(i<arr.length-1){
+        p.append(ce(`button`,false,`closeStory`,locals.termsAndButtons.next[lang],{
+            onclick:()=>{
+                arr.splice(0,1)
+                showStory(arr)
+            }
+        }))
+    } else {
+        p.append(ce(`button`,false,[`stakeButton`,`closeStory`],locals.termsAndButtons.close[lang],{
+            onclick:()=>{
+                popup.remove()
+            }
+        }))
+    }
+    
+
+}
 
 function back2Lobby(){
     this.sactive(`lobby`)
@@ -122,7 +187,7 @@ function back2Lobby(){
     tg.BackButton.offClick(back2Lobby)
 }
 class Page{
-    constructor(d,tg,handleError,host,userLoad,drawDate){
+    constructor(d, tg, handleError,host,userLoad,drawDate){
         
         this.share = () => {
             tg.switchInlineQuery(`me`,[`users`])
@@ -137,6 +202,10 @@ class Page{
                 window.location.search = `?lang=${lang}`
             })
         }
+
+        this.stories = ko.observableArray(d.stories.map(s=>new Story(s)))
+
+        if(d.stories.filter(s=>!s.shown).length) showStory(d.stories.filter(s=>!s.shown))
         
         this.tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://stars-auction-bot-0823eb8d3f85.herokuapp.com/tonconnect-manifest.json',
@@ -624,7 +693,7 @@ function time(date){
 
 function showIterationHistory(id,base){
     
-        axios.get(`/auction/api/iterationStakes/${id}`).then(col=>{
+        axios.get(`/${host}/api/iterationStakes/${id}`).then(col=>{
             let m = ce(`div`,false,[`modal`,`reg`])
             m.append(ce(`h2`,false,false,locals.headers.history[lang],{
                 onclick:()=>m.remove()
@@ -703,7 +772,7 @@ class IterationArchive{
                     l.append(ce(`span`,false,`info`,locals.termsAndButtons.shareLink[lang]))
                 f.append(l)
                 let r = ce(`img`,false,[`block`,`qr`],false,{
-                    src: `/auction/qr?user=${userId}`
+                    src: `/${host}/qr?user=${userId}`
                 })
                 f.append(r)
             c.append(f);    

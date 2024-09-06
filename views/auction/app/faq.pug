@@ -2,6 +2,11 @@
     div
         include header
         .section
+            h3 News
+            .scrollContainer
+                .scroll(data-bind="foreach:stories")
+                    img.storyLine(data-bind="attr{src:pic, 'data-active':shown()?'false':'true'}, event:{click:()=>showMe()}")
+        .section
             h3 FAQ
             .grid2(data-bind="foreach:faqs")
                 .box2.big(data-bind="event:{click:()=>toggle()}")
