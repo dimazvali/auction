@@ -3,9 +3,11 @@
         include headerRefs
         .section
             h3!=translations.headers.refLink[lang]+'🔗'
-            .box2.line
-                span.ws(data-bind="text:`${botLink}?start=ref_${userId()}`, event:{click:()=>copyRef()}") 
-                .copyButton(data-bind="event:{click:()=>share()}")
+            .flex
+                .box2.line.short
+                        span.ws(data-bind="text:`${botLink}?start=ref_${userId()}`, event:{click:()=>copyRef()}") 
+                        .copyButton(data-bind="event:{click:()=>share()}")
+                button.share(data-bind="event:{click:()=>share()}")
             .grid2
                 .box2.big
                     p.t!=translations.headers.refs[lang]
@@ -33,7 +35,7 @@
                         td(data-bind="text:'@'+username()")
                         td(data-bind="text:totalStakesTon")
                         td.ton(data-bind="text:score().toFixed(2)")
-        .section
+        //- .section
             h3=translations.about[lang]+'🤔'
             table.ref(data-bind="foreach:refFaqs")
                 tr(data-bind="attr:{class:closed()?`down`:`up`}")

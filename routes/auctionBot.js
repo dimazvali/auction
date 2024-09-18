@@ -1004,6 +1004,7 @@ function faqAdd(req,res,admin){
     if(consistencyCheck({
         name:           `Название`,
         description:    `Текст`,
+        lang:           `Язык`
     },req,res)){
         faqs.add({
             active:         true,
@@ -1015,6 +1016,7 @@ function faqAdd(req,res,admin){
             timing:         +req.body.timing || null,
             icon:           req.body.icon || null,
             ref:            req.body.ref ? true : false,
+            lang:           req.body.lang || 'ru'
         }).then(rec=>{
             
             log({
@@ -1580,7 +1582,10 @@ router.all(`/api/:method`, (req, res) => {
                         return ifBefore(transactions,{user: +user.id}).then(col=>res.json(col))
                     }
                     case `faqs`:{
-                        return ifBefore(faqs).then(col=>{
+                        return ifBefore(faqs,{
+                            active: true,
+                            lang: languages.indexOf(user.language_code) > -1 ? user.language_code : `en` 
+                        }).then(col=>{
                             res.json(col)
                         })
                     }

@@ -1242,3 +1242,9 @@ button.closeStory {
     top: 50%;
     transform: translate(-20px, -50%);
 }
+
+button.share {
+    width: 30px;
+    height: 30px;
+    margin-left: 10px;
+}

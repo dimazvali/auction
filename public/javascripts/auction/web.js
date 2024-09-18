@@ -124,7 +124,8 @@ function showUserLine(u){
 
 function showFaqLine(f){
     let c = listContainer(f,true,{
-        timing: `тайминг`
+        timing: `тайминг`,
+        lang: `язык`
     });
     c.append(ce(`h3`,false,false,f.name,{
         onclick:()=>showFaq(f.id)
@@ -146,9 +147,10 @@ function addStory(){
 
 function addFaq(){
     addScreen(`faqs`,`Новый ФАК`,{
+        lang:           {placeholder:   `Язык`,             selector: `lang`},
         name:           {placeholder:   `название`},
-        description:    {placeholder:   `текст`,        tag: `textarea`},
-        timing:         {placeholder:   `время`,        type: `number`},
+        description:    {placeholder:   `текст`,            tag: `textarea`},
+        timing:         {placeholder:   `время`,            type: `number`},
         icon:           {placeholder:   `иконка`}
     })
 }
@@ -630,9 +632,9 @@ function edit(entity, id, attr, type, value, container,layer) {
 
     let attrTypes = {
         description: `описание`,
-        name: `название`,
-        authorId: `автор`,
-        courseId: `курс`,
+        name:           `название`,
+        authorId:       `автор`,
+        courseId:       `курс`,
         descShort: `краткое описание`,
         descLong: `развернутое пописание`
     }

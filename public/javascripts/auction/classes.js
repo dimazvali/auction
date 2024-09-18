@@ -220,9 +220,13 @@ class Page{
         this.setRefill = (v) => this.refill(v);
 
         this.showRefFaq = () => {
-            console.log(this.faqs())
-            console.log(this.faqs().filter(f=>f.id == `zcBzZ5t1qjtijS4UZX7N`))
-            this.faqs().filter(f=>f.id == `zcBzZ5t1qjtijS4UZX7N`)[0].closed(false)
+
+            if(this.faqs().filter(f=>f.id == `zcBzZ5t1qjtijS4UZX7N`)[0]){
+                this.faqs().filter(f=>f.id == `zcBzZ5t1qjtijS4UZX7N`)[0].closed(false)
+            } else {
+                this.faqs().filter(f=>f.id == `iP58dAInZpU6PY3npHBs`)[0].closed(false)
+            }
+            
         }
 
         this.sendMoney = async () => {
@@ -348,7 +352,7 @@ class Page{
             this.archive([])
             this.sactive(`before`)
             userLoad(`before`)
-                .then(data=>this.archive(data.map(i=>new IterationArchive(i,d.profile.id))))
+                .then(data=>this.archive(data.map(i=>new IterationArchive(i,d.profile.id,this.share))))
         }
 
         this.userwallet = ko.observable(d.profile.wallet || null)
@@ -727,7 +731,7 @@ function showIterationHistory(id,base){
 }
 
 class IterationArchive{
-    constructor(i,userId){
+    constructor(i,userId,share){
         this.date =             new Date(i.createdAt._seconds*1000).toLocaleDateString()
         this.id =               i.id;
         this.stakeHolderId =    ko.observable(i.stakeHolderId);
@@ -772,7 +776,8 @@ class IterationArchive{
                     l.append(ce(`span`,false,`info`,locals.termsAndButtons.shareLink[lang]))
                 f.append(l)
                 let r = ce(`img`,false,[`block`,`qr`],false,{
-                    src: `/${host}/qr?user=${userId}`
+                    src: `/${host}/qr?user=${userId}`,
+                    onclick:()=>share()
                 })
                 f.append(r)
             c.append(f);    
