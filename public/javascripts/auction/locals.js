@@ -231,19 +231,19 @@ const locals = {
             en: `There is no such auction`
         },
         notEnoughStars: {
-            ru: `Вам не хватает звезд!`,
-            en: `Not enough stars!`
+            ru: `Пополните баланс!`,
+            en: `Not enough TON!`
         }
     },
     users:{
         welcome: {
-            ru: `Добро пожаловать в Аукцион, тут вы можете легко выиграть Звезды от Телеграм`,
-            en: `Welcome to the Auction, here you can easily win stars from Telegram`
+            ru: `Добро пожаловать в Аукцион, тут вы можете легко выиграть ТON.`,
+            en: `Welcome to the Auction, here you can easily win TON.`
         },
         scoreUpdated: (payment) => {
             return {
-                ru: `Ваш счет пополнен на ${payment.total_amount} звезд.`,
-                en: `Your account has been funded with ${payment.total_amount} stars.`
+                ru: `Ваш счет пополнен на ${payment.total_amount}.`,
+                en: `Your account has been funded with ${payment.total_amount}.`
             }
         },
         toPayDesc:{
@@ -264,8 +264,8 @@ const locals = {
         },
         congrats: (iteration)=> {
             return {
-                ru: `Поздравляем! Вы выиграли ${iteration.stake.toFixed(1)} звезд!`,
-                en: `Congratulations! You have won ${iteration.stake.toFixed(1)} stars!`,
+                ru: `Поздравляем! Вы выиграли ${iteration.stake.toFixed(1)} TON!`,
+                en: `Congratulations! You have won ${iteration.stake.toFixed(1)} TON!`,
             }
         }
     },
@@ -284,8 +284,8 @@ const locals = {
     },
     accountCharged:(a)=>{
         return {
-            ru: `Ура! Ваш баланс пополнен на ${a} звезд. Удачной игры!`,
-            en: `Yay! Your balance has been replenished with ${a} stars. Good luck!`
+            ru: `Ура! Ваш баланс пополнен на ${a} TON. Удачной игры!`,
+            en: `Yay! Your balance has been replenished with ${a} TON. Good luck!`
         }
     }
 }
