@@ -782,6 +782,8 @@ class IterationArchive{
                 f.append(r)
             c.append(f);    
 
+            c.append(ce(`button`,false,false,`share`,{onclick:()=>share()}))
+
             document.body.append(c)
         }
     }
@@ -856,7 +858,13 @@ class Auction{
     
 }
 
+document.ontouchmove = function(event){
+    event.preventDefault();
+}
+
+
 export {
     Page,
     // tonConnectUI
 }
+

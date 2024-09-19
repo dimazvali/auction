@@ -6,7 +6,7 @@
             .flex
                 .box2.line.short
                         span.ws(data-bind="text:`${botLink}?start=ref_${userId()}`, event:{click:()=>copyRef()}") 
-                        .copyButton(data-bind="event:{click:()=>share()}")
+                        .copyButton(data-bind="event:{click:()=>copyRef()}")
                 button.share(data-bind="event:{click:()=>share()}")
             .grid2
                 .box2.big

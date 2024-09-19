@@ -181,4 +181,3 @@ Promise
     import {
         Page
     } from '/javascripts/auction/classes.js'
-    

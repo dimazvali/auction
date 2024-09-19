@@ -1,6 +1,4 @@
 
-/* background: #4378FF1A; */
-
 body {
     padding: 10px;
     color: var(--tg-theme-text-color);
@@ -1248,3 +1246,9 @@ button.share {
     height: 30px;
     margin-left: 10px;
 }
+
+html, body {
+    overscroll-behavior-y: contain;
+    /* touch-action: none; */
+}
+  

@@ -101,6 +101,16 @@ function showFaq(){
     })
 }
 
+
+if(Telegram.WebApp.colorScheme == 'dark'){
+    Telegram.WebApp.setBackgroundColor(`#0E1728`);
+    Telegram.WebApp.setHeaderColor(`#0E1728`);
+} else {
+    Telegram.WebApp.setBackgroundColor(`#F4F5F7`);
+    Telegram.WebApp.setHeaderColor(`#F4F5F7`);
+    
+}
+
 function helper2(type){
     let m = ce(`div`,false,[`modal`,(Telegram.WebApp.colorScheme=='dark'?`reg`:`light`)])
                 m.append(ce(`h2`,false,false,helperTexts[type].title,{
