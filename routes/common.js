@@ -23,6 +23,8 @@ function consistencyCheck(o,req,res){
 
 function authTG(req,res,token,adminTokens,udb,registerUser,tokenName){
 
+    console.log(adminTokens);
+    
     data_check_string=Object.keys(req.body)
         .filter(key => key !== 'hash')
         .sort()
